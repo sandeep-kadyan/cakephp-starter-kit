@@ -36,18 +36,17 @@ return [
      */
     'Datasources' => [
         'default' => [
-            'host' => 'localhost',
+            'host' => env('DB_HOST', 'localhost'),
             /*
              * CakePHP will use the default DB port based on the driver selected
              * MySQL on MAMP uses port 8889, MAMP users will want to uncomment
              * the following line and set the port accordingly
              */
-            //'port' => 'non_standard_port_number',
+            //'port' => env('DB_PORT', 'non_standard_port_number'),
 
-            'username' => 'my_app',
-            'password' => 'secret',
-
-            'database' => 'my_app',
+            'username' => env('DB_USERNAME', 'my_app'),
+            'password' => env('DB_PASSWORD', 'secret'),
+            'database' => env('DB_DATABASE', 'my_app'),
             /*
              * If not using the default 'public' schema with the PostgreSQL driver
              * set it here.
@@ -83,12 +82,33 @@ return [
      */
     'EmailTransport' => [
         'default' => [
-            'host' => 'localhost',
-            'port' => 25,
-            'username' => null,
-            'password' => null,
-            'client' => null,
+            'host' => env('EMAIL_TRANSPORT_HOST', 'localhost'),
+            'port' => env('EMAIL_TRANSPORT_PORT', 25),
+            'username' => env('EMAIL_TRANSPORT_USERNAME', null),
+            'password' => env('EMAIL_TRANSPORT_PASSWORD', null),
+            'client' => env('EMAIL_TRANSPORT_CLIENT', null),
             'url' => env('EMAIL_TRANSPORT_DEFAULT_URL', null),
+        ],
+    ],
+
+    /*
+     * Email delivery profiles
+     *
+     * Delivery profiles allow you to predefine various properties about email
+     * messages from your application and give the settings a name. This saves
+     * duplication across your application and makes maintenance and development
+     * easier. Each profile accepts a number of keys. See `Cake\Mailer\Mailer`
+     * for more information.
+     */
+    'Email' => [
+        'default' => [
+            'transport' => env('EMAIL_TRANSPORT', 'default'),
+            'from' => env('EMAIL_FROM', 'admin@localhost.com'),
+            /*
+             * Will by default be set to config value of App.encoding, if that exists otherwise to UTF-8.
+             */
+            //'charset' => env('EMAIL_CHARSET', 'utf-8'),
+            //'headerCharset' => env('EMAIL_HEADER_CHARSET', 'utf-8'),
         ],
     ],
 ];
