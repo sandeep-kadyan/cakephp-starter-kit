@@ -152,7 +152,7 @@ See [doc/fake-data-command.md](doc/fake-data-command.md) for full details.
 ## Documentation
 
 - [Fake Data Command](doc/fake-data-command.md): Generate fake data for any model.
-- [DataTable Helper](doc/datatable-helper.md): Build interactive tables.
+- [AjaxTable Helper](doc/ajaxtable-helper.md): Build interactive tables.
 - [Menu Helper](doc/menu-helper.md): Dynamic, nested menus.
 - [Toast Helper](doc/toast-helper.md): Toast notifications.
 - [Vite Helper](doc/vite-helper.md): Modern asset pipeline.
