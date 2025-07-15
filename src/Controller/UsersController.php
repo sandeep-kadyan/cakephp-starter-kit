@@ -167,17 +167,32 @@ class UsersController extends AppController
     }
 
     /**
-     * Magic login verification method
+     * Handles magic login verification via GET or POST token.
      *
-     * @return \Cake\Http\Response|null
+     * - Accepts a token via GET or POST.
+     * - Validates the token and checks for expiration and prior use.
+     * - If valid, marks the request as verified, creates a user if needed, logs in the user, and redirects to dashboard.
+     * - Handles all error cases with user feedback and appropriate redirects.
+     * - If no token is provided or verification fails, shows the verification form again.
+     *
+     * @return \Cake\Http\Response|null Redirects on success or error, renders form otherwise.
      */
     public function verify()
     {
         $authRequests = $this->fetchTable('AuthRequests');
-        $token = $this->request->getData('token');
-        $verifyMagicLoginForm = new VerifyMagicLoginForm();
+        $token = $this->request->getQuery('token');
+
+        // If POST, override token with submitted value and check for missing token
         if ($this->request->is('post')) {
-            $data = $this->request->getData();
+            $token = $this->request->getData('token');
+            if (!$token) {
+                $this->Flash->error(__('No verification token provided. Please try to login again.'));
+                return $this->redirect(['controller' => 'Users', 'action' => 'login']);
+            }
+        }
+
+        if ($token) {
+            // Find a valid, unverified, unexpired auth request for this token
             $authRequest = $authRequests->find()
                 ->where([
                     'verification_token' => $token,
@@ -186,59 +201,75 @@ class UsersController extends AppController
                 ])
                 ->orderBy(['created' => 'DESC'])
                 ->first();
-            if ($authRequest && $authRequest->verification_token) {
-                if ($token && $authRequest->verification_token === $token) {
-                    $authRequest->verified_at = DateTime::now();
-                    $authRequests->save($authRequest);
-                    // Check if user exists, if not, create
-                    $user = $this->Users->find()
-                        ->where([
-                            'OR' => [
-                                'username' => $authRequest->email,
-                                'email' => $authRequest->email,
-                            ],
-                        ])
-                        ->first();
-                    if (!$user) {
-                        // Extract username and name from email
-                        $email = $authRequest->email;
-                        $username = $email;
-                        $name = $email;
-                        if ($email && strpos($email, '@') !== false) {
-                            $username = substr($email, 0, strpos($email, '@'));
-                            $name = ucfirst($username);
-                        }
-                        $userData = [
-                            'username' => $username,
-                            'email' => $email,
-                            'name' => $name,
-                            'password' => bin2hex(random_bytes(8)),
-                            'last_active_at' => DateTime::now(),
-                        ];
-                        $user = $this->Users->newEntity($userData);
-                        if (!$this->Users->save($user)) {
-                            $this->Flash->error(__('Unable to create user.'));
-
-                            return null;
-                        }
-                    }
-
-                    $this->Users->save($this->Users->patchEntity($user, ['last_active_at' => DateTime::now()]));
-                    $this->Authentication->setIdentity($user);
-                    $authRequests->delete($authRequest);
-                    $this->Flash->success(__('You are now logged in!'));
-
-                    return $this->redirect(['controller' => 'Pages', 'action' => 'dashboard']);
-                } else {
-                    $this->Flash->error(__('Invalid or expired verification token.'));
-                }
-            } else {
-                $this->Flash->error(__('No login request found. Please try to login again.'));
-
+            
+            if (!$authRequest) {
+                // No valid request found (expired, already used, or invalid token)
+                $this->Flash->error(__('Invalid or expired verification token. Please request a new magic link.'));
                 return $this->redirect(['controller' => 'Users', 'action' => 'login']);
+            }
+
+            if ($authRequest->verification_token === $token) {
+                // Mark the auth request as verified
+                $authRequest->verified_at = DateTime::now();
+                if (!$authRequests->save($authRequest)) {
+                    $this->Flash->error(__('Could not mark the login request as verified. Please try again.'));
+                    return $this->redirect(['controller' => 'Users', 'action' => 'login']);
+                }
+
+                // Try to find an existing user by email or username
+                $user = $this->Users->find()
+                    ->where([
+                        'OR' => [
+                            'username' => $authRequest->email,
+                            'email' => $authRequest->email,
+                        ],
+                    ])
+                    ->first();
+                if (!$user) {
+                    // If user does not exist, create a new one from email
+                    $email = $authRequest->email;
+                    $username = $email;
+                    $name = $email;
+                    if ($email && strpos($email, '@') !== false) {
+                        $username = substr($email, 0, strpos($email, '@'));
+                        $name = ucfirst($username);
+                    }
+                    $userData = [
+                        'username' => $username,
+                        'email' => $email,
+                        'name' => $name,
+                        'password' => bin2hex(random_bytes(8)),
+                        'last_active_at' => DateTime::now(),
+                    ];
+                    $user = $this->Users->newEntity($userData);
+                    if (!$this->Users->save($user)) {
+                        // User creation failed
+                        $this->Flash->error(__('Unable to create user. Please contact support.'));
+                        return $this->redirect(['controller' => 'Users', 'action' => 'login']);
+                    }
+                }
+
+                // Update last_active_at for the user
+                $user = $this->Users->patchEntity($user, ['last_active_at' => DateTime::now()]);
+                if (!$this->Users->save($user)) {
+                    $this->Flash->error(__('Unable to update user activity. Please try again.'));
+                    return $this->redirect(['controller' => 'Users', 'action' => 'login']);
+                }
+
+                // Log in the user and clean up the auth request
+                $this->Authentication->setIdentity($user);
+                $authRequests->delete($authRequest);
+                $this->Flash->success(__('You are now logged in!'));
+
+                return $this->redirect(['controller' => 'Pages', 'action' => 'dashboard']);
+            } else {
+                // Token mismatch (should not happen if query is correct)
+                $this->Flash->error(__('Verification token mismatch. Please request a new magic link.'));
             }
         }
 
+        // If no token or verification failed, show the verification form again
+        $verifyMagicLoginForm = new VerifyMagicLoginForm();
         $this->set(compact('verifyMagicLoginForm'));
         $this->viewBuilder()
             ->setLayout('auth')
