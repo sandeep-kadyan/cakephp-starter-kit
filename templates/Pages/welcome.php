@@ -47,12 +47,6 @@ $checkConnection = function (string $name) {
 
     return compact('connected', 'error');
 };
-
-if (!Configure::read('debug')) :
-    throw new NotFoundException(
-        'Please replace templates/Pages/welcome.php with your own version or re-enable debug mode.'
-    );
-endif;
 $this->assign('title', 'Welcome');
 ?>
 <div class="max-w-4xl mx-auto py-10 px-4">
