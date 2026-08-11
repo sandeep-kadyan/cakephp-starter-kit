@@ -27,3 +27,4 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - **Login redirect**: Fixed `DashboardController could not be found` after login. The login fallback target was the string `/dashboard`, which CakePHP tried to route to a nonexistent `DashboardController`. Changed to `['controller' => 'Pages', 'action' => 'dashboard']` which correctly renders the Pages dashboard template.
+- **Header login state**: Fixed the header always showing the "Log In" button even for logged-in users. The `isset($this->Identity)` check never matched because CakePHP helpers are exposed via the magic `__get` method and `View` implements no `__isset()`. Removed the `isset()` check and use `$this->Identity->isLoggedIn()` directly, which safely returns `false` when no identity exists.

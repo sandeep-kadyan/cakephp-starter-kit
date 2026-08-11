@@ -10,8 +10,7 @@
             <!-- Logo -->
             <div class="flex items-center">
                 <?= $this->Html->link(
-                    $this->Html->image('cake.logo.svg', ['alt' => 'CakePHP', 'class' => 'h-8 w-auto invert dark:invert-0']) .
-                    '<span class="ml-2 text-xl font-bold text-neutral-900 dark:text-neutral-100">CakePHP SaaS</span>',
+                    $this->Html->image('cake.logo.svg', ['alt' => 'CakePHP', 'class' => 'h-8 w-auto invert dark:invert-0']),
                     '/',
                     ['class' => 'flex items-center gap-2', 'escape' => false]
                 ) ?>
@@ -34,7 +33,7 @@
             <!-- Right Side -->
             <div class="flex items-center gap-3">
                 <?= $this->element('base/theme') ?>
-                <?php if (isset($this->Identity) && $this->Identity->isLoggedIn()): ?>
+                <?php if ($this->Identity->isLoggedIn()): ?>
                     <?= $this->Html->link(
                         '<span class="material-icons text-sm mr-2">dashboard</span> Dashboard',
                         '/pages/dashboard',
