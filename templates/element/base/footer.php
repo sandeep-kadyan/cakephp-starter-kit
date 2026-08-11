@@ -117,6 +117,15 @@ use Cake\Core\Configure;
             </div>
         </div>
 
+        <!-- Big Text Logo -->
+        <div class="-mx-6 sm:-mx-0 relative mb-4 overflow-hidden -z-10">
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span class="text-neutral-100 dark:text-neutral-950/5 select-none font-black text-[6rem] sm:text-[8rem] md:text-[10rem] lg:text-[12rem] leading-none tracking-tighter opacity-10">
+                    CAKEPHP
+                </span>
+            </div>
+        </div>
+
         <!-- Bottom Bar -->
         <div class="border-t border-neutral-200 dark:border-neutral-800 mt-8 pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-neutral-500">
             <div class="flex items-center gap-6 text-xs text-neutral-500 dark:text-neutral-500">
