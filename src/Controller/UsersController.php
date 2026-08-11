@@ -127,10 +127,7 @@ class UsersController extends AppController
     {
         $result = $this->Authentication->getResult();
         if ($result && $result->isValid()) {
-            $target = $this->Authentication->getLoginRedirect() ?? '/dashboard';
-            if (!$target) {
-                $target = ['controller' => 'Pages', 'action' => 'dashboard'];
-            }
+            $target = $this->Authentication->getLoginRedirect() ?? ['controller' => 'Pages', 'action' => 'dashboard'];
 
             return $this->redirect($target);
         }
