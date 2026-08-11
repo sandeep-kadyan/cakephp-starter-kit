@@ -15,3 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - **Users Seed**: Added `config/Seeds/UsersSeed.php` to seed an admin user with `admin@example.com` / `password`. The password is hashed using `DefaultPasswordHasher`, matching the `User` entity's `_setPassword` mutator.
+
+### Changed
+
+- **Modern Welcome Page**: Redesigned `templates/Pages/welcome.php` with a modern hero section, gradient backgrounds, glass-morphism cards, quick action buttons, and a feature highlights section. Retained all environment, filesystem, database, and DebugKit status checks.
