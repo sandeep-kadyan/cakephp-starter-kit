@@ -8,7 +8,7 @@ use Cake\Core\Configure;
 ?>
 <footer class="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 mt-auto">
     <div class="container mx-auto px-6 py-12">
-        <div class="grid grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-8">
+        <div class="grid grid-cols-1 gap-10 lg:grid-cols-6 lg:gap-8">
             <!-- Brand -->
             <div class="lg:col-span-2 flex flex-col justify-between">
                 <div>
