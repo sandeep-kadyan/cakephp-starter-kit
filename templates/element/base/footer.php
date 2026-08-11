@@ -118,12 +118,10 @@ use Cake\Core\Configure;
         </div>
 
         <!-- Big Text Logo -->
-        <div class="-mx-6 sm:-mx-0 relative mb-4 overflow-hidden -z-10">
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span class="text-neutral-100 dark:text-neutral-950/5 select-none font-black text-[6rem] sm:text-[8rem] md:text-[10rem] lg:text-[12rem] leading-none tracking-tighter opacity-10">
-                    CAKEPHP
-                </span>
-            </div>
+        <div class="relative flex items-center justify-center -mb-8 overflow-hidden pointer-events-none">
+            <span class="text-neutral-200 dark:text-neutral-800 select-none font-black text-[5rem] sm:text-[7rem] md:text-[9rem] lg:text-[11rem] leading-none tracking-tighter">
+                CAKEPHP
+            </span>
         </div>
 
         <!-- Bottom Bar -->
