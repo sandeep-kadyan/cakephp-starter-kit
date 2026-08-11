@@ -10,16 +10,21 @@ use Cake\Core\Configure;
     <div class="container mx-auto px-6 py-12">
         <div class="grid grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-8">
             <!-- Brand -->
-            <div class="lg:col-span-2">
-                <div class="flex items-center gap-2 mb-4">
-                    <?= $this->Html->image('cake.logo.svg', ['alt' => 'CakePHP', 'class' => 'h-7 w-auto invert dark:invert-0']) ?>
-                    <span class="text-neutral-900 dark:text-neutral-100 font-bold text-xl">CakePHP SaaS</span>
+            <div class="lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <?= $this->Html->image('cake-logo.png', [
+                            'alt' => 'CakePHP',
+                            'class' => 'h-10 w-auto',
+                        ]) ?>
+                        <span class="text-neutral-900 dark:text-neutral-100 font-bold text-3xl tracking-tight">CAKEPHP</span>
+                    </div>
+                    <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-5 max-w-md">
+                        A modern starter kit for building SaaS applications on CakePHP.
+                        Get up and running with authentication, authorization, dashboards, and more.
+                    </p>
                 </div>
-                <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-4 max-w-md">
-                    A modern starter kit for building SaaS applications on CakePHP.
-                    Get up and running with authentication, authorization, dashboards, and more.
-                </p>
-                <div class="flex gap-4">
+                <div class="flex gap-3">
                     <?= $this->Html->link(
                         '<span class="material-icons text-sm">x</span>',
                         '#',
@@ -114,9 +119,21 @@ use Cake\Core\Configure;
 
         <!-- Bottom Bar -->
         <div class="border-t border-neutral-200 dark:border-neutral-800 mt-8 pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-neutral-500">
-            <p>&copy; <?= date('Y') ?> CakePHP SaaS. All rights reserved.</p>
+            <div class="flex items-center gap-6 text-xs text-neutral-500 dark:text-neutral-500">
+                <p>&copy; <?= date('Y') ?> CakePHP SaaS. All rights reserved.</p>
+                <?php $loadTime = round((microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1000, 2); ?>
+                <?php $memUsage = round(memory_get_usage() / 1024 / 1024, 2); ?>
+                <span class="flex items-center gap-1">
+                    <span class="material-icons text-xs">speed</span>
+                    Speed: <?= $loadTime ?>ms
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="material-icons text-xs">memory</span>
+                    Memory: <?= $memUsage ?>MB
+                </span>
+            </div>
             <p class="sm:text-right">
-                Made with ❤️ using CakePHP <?= h(Configure::version()) ?>
+                Made with &hearts; using CakePHP <?= h(Configure::version()) ?>
             </p>
         </div>
     </div>
