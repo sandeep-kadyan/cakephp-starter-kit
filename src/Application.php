@@ -24,7 +24,7 @@ use App\Middleware\ActivityTrackerMiddleware;
 use Authentication\AuthenticationService;
 use Authentication\AuthenticationServiceInterface;
 use Authentication\AuthenticationServiceProviderInterface;
-use Authentication\Identifier\AbstractIdentifier;
+use Authentication\Identifier\PasswordIdentifier;
 use Authentication\Middleware\AuthenticationMiddleware;
 use Cake\Core\Configure;
 use Cake\Core\ContainerInterface;
@@ -162,26 +162,12 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ]);
 
             $fields = [
-                AbstractIdentifier::CREDENTIAL_USERNAME => 'email',
-                AbstractIdentifier::CREDENTIAL_PASSWORD => 'password',
+                PasswordIdentifier::CREDENTIAL_USERNAME => 'email',
+                PasswordIdentifier::CREDENTIAL_PASSWORD => 'password',
             ];
-            // Load the authenticators. Session should be first.
-            $service->loadAuthenticator('Authentication.Session');
-            $service->loadAuthenticator('Authentication.Form', [
+            $identifier = [
+                'className' => 'Authentication.Password',
                 'fields' => $fields,
-                'loginUrl' => '/login',
-            ]);
-            $service->loadAuthenticator('Authentication.Token', [
-                'queryParam' => 'token',
-                'header' => 'Authorization',
-                'tokenPrefix' => 'Token',
-            ]);
-            $service->loadAuthenticator('Authentication.Cookie', [
-                'fields' => $fields,
-                'loginUrl' => '/login',
-            ]);
-            $service->loadIdentifier('Authentication.Password', [
-                compact('fields'),
                 'resolver' => [
                     'className' => 'Authentication.Orm',
                     'userModel' => 'Users',
@@ -197,6 +183,23 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                         ],
                     ],
                 ],
+            ];
+            // Load the authenticators. Session should be first.
+            $service->loadAuthenticator('Authentication.Session');
+            $service->loadAuthenticator('Authentication.Form', [
+                'fields' => $fields,
+                'loginUrl' => '/login',
+                'identifier' => $identifier,
+            ]);
+            $service->loadAuthenticator('Authentication.Token', [
+                'queryParam' => 'token',
+                'header' => 'Authorization',
+                'tokenPrefix' => 'Token',
+            ]);
+            $service->loadAuthenticator('Authentication.Cookie', [
+                'fields' => $fields,
+                'loginUrl' => '/login',
+                'identifier' => $identifier,
             ]);
 
             // $service->loadIdentifier('Authentication.Callback', [
