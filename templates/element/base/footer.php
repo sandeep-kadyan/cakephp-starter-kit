@@ -10,7 +10,7 @@
             <!-- Brand -->
             <div class="lg:col-span-2">
                 <div class="flex items-center gap-2 mb-4">
-                    <?= $this->Html::image('cake.logo.svg', ['alt' => 'CakePHP', 'class' => 'h-7 w-auto invert dark:invert-0']) ?>
+                    <?= $this->Html->image('cake.logo.svg', ['alt' => 'CakePHP', 'class' => 'h-7 w-auto invert dark:invert-0']) ?>
                     <span class="text-neutral-900 dark:text-neutral-100 font-bold text-xl">CakePHP SaaS</span>
                 </div>
                 <p class="text-sm text-neutral-600 dark:text-neutral-400 mb-4 max-w-md">
