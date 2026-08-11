@@ -18,4 +18,4 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Modern Welcome Page**: Redesigned `templates/Pages/welcome.php` with a modern hero section, gradient backgrounds, glass-morphism cards, quick action buttons, and a feature highlights section. Retained all environment, filesystem, database, and DebugKit status checks.
+- **Modern Welcome Page**: Redesigned `templates/Pages/welcome.php` with a SaaS-style landing page featuring a hero section with logo mockup, quick action buttons, system status grid, and a feature highlights section with three cards (Auth & Security, SaaS Dashboard, Dev Tools).
