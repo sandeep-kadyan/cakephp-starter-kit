@@ -22,4 +22,4 @@ All notable changes to this project will be documented in this file.
 
 - **Default Layout Header & Footer**: Extracted header and footer into reusable element files (`templates/element/base/header.php` and `templates/element/base/footer.php`) for maintainability. Updated the `default` layout to use these elements.
 - **Destructive Color Theme**: Replaced violet accent color with `--destructive` (red/orange) theme colors throughout header, footer, hero section, and status cards.
-- **Modern Footer**: Footer includes sitemap columns (Product, Company, Legal) with logo, description, and copyright bar using a clean stone theme design.
+- **Modern Footer**: Redesigned the footer element with a SaaS-style layout featuring a prominent brand section with social icons, organized sitemap columns (Product, Resources, Company, Legal), and a bottom bar with copyright and CakePHP version info.
