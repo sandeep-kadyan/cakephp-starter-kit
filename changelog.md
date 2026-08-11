@@ -19,4 +19,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - **Modern Welcome Page**: Redesigned `templates/Pages/welcome.php` with a SaaS-style landing page featuring a hero section with logo mockup, quick action buttons, system status grid, and a feature highlights section with three cards (Auth & Security, SaaS Dashboard, Dev Tools).
-- **Default Layout Header & Footer**: Updated `templates/layout/default.php` with a proper SaaS-style header (logo, navigation links, auth buttons) and footer (sitemap columns and copyright) using stone theme colors consistently.
+
+- **Default Layout Header & Footer**: Extracted header and footer into reusable element files (`templates/element/base/header.php` and `templates/element/base/footer.php`) for maintainability. Updated the `default` layout to use these elements.
+- **Destructive Color Theme**: Replaced violet accent color with `--destructive` (red/orange) theme colors throughout header, footer, hero section, and status cards.
+- **Modern Footer**: Footer includes sitemap columns (Product, Company, Legal) with logo, description, and copyright bar using a clean stone theme design.
