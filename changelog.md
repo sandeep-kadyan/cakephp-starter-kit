@@ -29,3 +29,15 @@ All notable changes to this project will be documented in this file.
 - **Login redirect**: Fixed `DashboardController could not be found` after login. The login fallback target was the string `/dashboard`, which CakePHP tried to route to a nonexistent `DashboardController`. Changed to `['controller' => 'Pages', 'action' => 'dashboard']` which correctly renders the Pages dashboard template.
 - **Header login state**: Fixed the header always showing the "Log In" button even for logged-in users. The `isset($this->Identity)` check never matched because CakePHP helpers are exposed via the magic `__get` method and `View` implements no `__isset()`. Removed the `isset()` check and use `$this->Identity->isLoggedIn()` directly, which safely returns `false` when no identity exists.
 - **Hero bento grid**: Redesigned the hero's right-side quick stats into a glassmorphism bento grid with transparent backgrounds (backdrop-blur tiles), featuring a large logo tile alongside stat tiles for Features, Ready, 2FA Auth, JWT, and Dark Mode.
+
+### SEO
+
+- **Full SEO setup**: Added a reusable `base/seo` element rendered in `default`, `app`, and `auth` layouts with:
+  - Meta description, author, keywords, robots, theme-color, and canonical URL
+  - Open Graph tags (site_name, type, title, description, url, image, locale)
+  - Twitter Card tags (summary_large_image, title, description, image, site)
+  - JSON-LD structured data (WebSite + WebPage + Organization + author Person schema)
+  - Automatic `noindex, nofollow` for authenticated/private pages
+  - Per-view overrides via `title`, `seo.description`, `seo.image`, and `seo.type` view blocks
+- Added site identity settings (site name, author, keywords, share image, Twitter handle, organization) under `Setting.seo` in `config/setting.php`.
+- Welcome page now sets a proper SEO title and description.

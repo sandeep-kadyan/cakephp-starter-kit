@@ -38,7 +38,9 @@ $checkConnection = function (string $name) {
 $statusResult = $checkConnection('default');
 $debugKitResult = $checkConnection('debug_kit');
 
-$this->assign('title', 'Welcome');
+$this->assign('title', 'Welcome to CakePHP SaaS Starter Kit');
+$this->assign('seo.description', 'A modern, production-ready CakePHP SaaS starter kit with authentication, JWT, 2FA, dark mode, and a beautiful Tailwind CSS dashboard. Build and scale your SaaS product faster.');
+$this->assign('seo.type', 'website');
 ?>
 <!-- Hero Section -->
 <section class="bg-gradient-to-b from-white dark:from-neutral-950 via-neutral-50 dark:via-neutral-900 to-neutral-100 dark:to-neutral-950 py-20">
@@ -85,10 +87,6 @@ $this->assign('title', 'Welcome');
                     <div class="relative grid grid-cols-2 md:grid-cols-4 gap-4">
                         <!-- Logo Tile (large) -->
                         <div class="col-span-2 row-span-2 flex flex-col items-center justify-center gap-4 bg-white/60 dark:bg-neutral-800/40 backdrop-blur-sm border border-neutral-200/70 dark:border-neutral-700/60 rounded-2xl shadow-xl p-8">
-                            <?= $this->Html->image('cake.logo.svg', [
-                                'class' => 'w-24 h-auto invert-0 dark:invert',
-                                'alt' => 'CakePHP Logo',
-                            ]) ?>
                             <div class="text-center">
                                 <div class="text-xl font-bold text-neutral-800 dark:text-neutral-100">CakePHP</div>
                                 <div class="text-xs text-neutral-500 dark:text-neutral-400">Starter Kit</div>

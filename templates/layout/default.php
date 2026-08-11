@@ -20,6 +20,7 @@ use Cake\I18n\I18n;
     <?= $this->Vite->assets(['js/app.js', 'css/app.css']) ?>
 
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <?= $this->element('base/seo') ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
 
@@ -38,6 +39,7 @@ use Cake\I18n\I18n;
     <?= $this->element('base/footer') ?>
 
     <?= $this->fetch('script') ?>
+    
     <?= $this->Toast->render() ?>
 </body>
 

@@ -10,6 +10,7 @@
  *   - auth: Authentication-related layouts and login types
  *   - app: Application layout and toast settings
  *   - menu: Menu definitions for profile, sidebar, header, footer, and legal links
+ *   - seo: Site identity and SEO settings (title, description, author, keywords, share image, etc.)
  *
  * @return array Application settings
  */
@@ -17,12 +18,30 @@
 return [
     'Setting' => [
         'ajaxTableCache' => false, // Enable or disable AjaxTable cache
+        'seo' => [
+            'siteName' => 'CakePHP SaaS Starter Kit',
+            'title' => 'CakePHP SaaS Starter Kit',
+            'description' => 'A modern, production-ready CakePHP SaaS starter kit with authentication, JWT, 2FA, dark mode, and a beautiful Tailwind CSS dashboard.',
+            'keywords' => 'cakephp, saas, starter kit, tailwind css, authentication, jwt, 2fa, vite, vue',
+            'author' => 'Sandeep Kadyan',
+            'authorEmail' => 'sandeepkadyan91@gmail.com',
+            'canonical' => null, // Set to force a canonical URL, null auto-detects
+            'image' => '/img/cake-logo.png',
+            'twitter' => '@cakephp',
+            'robots' => 'index, follow',
+            'themeColor' => '#fafaf9',
+            'organization' => [
+                'name' => 'CakePHP SaaS Starter Kit',
+                'url' => '/',
+                'logo' => '/img/cake-logo.png',
+            ],
+        ],
         'default' => [
             'toast' => 'aside' // Toast: top-left, top-right, top-center, bottom-left, bottom-right, bottom-center
         ],
         'auth' => [
             'layout' => 'split', // Layouts: split, card, muted, simple
-            'login' => 'magic_login', // Login Typed: login, magic_login, social login
+            'login' => 'login', // Login Typed: login, magic_login, social login
             'toast' => 'top-right' // Toast: top-left, top-right, top-center, bottom-left, bottom-right, bottom-center
         ],
         'app' => [
