@@ -78,29 +78,43 @@ $this->assign('title', 'Welcome');
             </div>
             <div class="lg:w-1/2">
                 <div class="relative">
-                    <div class="absolute -top-4 -right-4 w-72 h-72 bg-red-500/20 rounded-full blur-3xl"></div>
-                    <div class="absolute -bottom-4 -left-4 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl"></div>
-                    <div class="relative bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-700 p-8">
-                        <?= $this->Html->image('cake.logo.svg', [
-                            'class' => 'w-48 h-auto mx-auto invert-0 dark:invert',
-                            'alt' => 'CakePHP Logo',
-                        ]) ?>
-                        <div class="mt-6 space-y-3 text-center">
-                            <div class="text-sm text-neutral-600 dark:text-neutral-400">Quick Stats</div>
-                            <div class="grid grid-cols-3 gap-4 pt-4 border-t border-neutral-200 dark:border-neutral-700">
-                                <div class="text-center">
-                                    <div class="text-2xl font-bold text-red-600">5+</div>
-                                    <div class="text-xs text-neutral-500 dark:text-neutral-500">Features</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-2xl font-bold text-red-600">100%</div>
-                                    <div class="text-xs text-neutral-500 dark:text-neutral-500">Ready</div>
-                                </div>
-                                <div class="text-center">
-                                    <div class="text-2xl font-bold text-red-600">∞</div>
-                                    <div class="text-xs text-neutral-500 dark:text-neutral-500">Scalable</div>
-                                </div>
+                    <div class="absolute -top-6 -right-6 w-72 h-72 bg-red-500/20 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-6 -left-6 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl"></div>
+
+                    <!-- Bento Grid -->
+                    <div class="relative grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Logo Tile (large) -->
+                        <div class="col-span-2 row-span-2 flex flex-col items-center justify-center gap-4 bg-white/60 dark:bg-neutral-800/40 backdrop-blur-sm border border-neutral-200/70 dark:border-neutral-700/60 rounded-2xl shadow-xl p-8">
+                            <?= $this->Html->image('cake.logo.svg', [
+                                'class' => 'w-24 h-auto invert-0 dark:invert',
+                                'alt' => 'CakePHP Logo',
+                            ]) ?>
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-neutral-800 dark:text-neutral-100">CakePHP</div>
+                                <div class="text-xs text-neutral-500 dark:text-neutral-400">Starter Kit</div>
                             </div>
+                        </div>
+
+                        <!-- Stat Tiles -->
+                        <div class="flex flex-col items-center justify-center gap-1 bg-red-500/10 dark:bg-red-500/15 border border-red-500/20 dark:border-red-500/25 rounded-2xl backdrop-blur-sm p-5 text-center">
+                            <div class="text-3xl font-black text-red-600 dark:text-red-400">5+</div>
+                            <div class="text-xs text-neutral-600 dark:text-neutral-300">Features</div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center gap-1 bg-white/60 dark:bg-neutral-800/40 border border-neutral-200/70 dark:border-neutral-700/60 rounded-2xl backdrop-blur-sm p-5 text-center">
+                            <div class="text-3xl font-black text-neutral-800 dark:text-neutral-100">100%</div>
+                            <div class="text-xs text-neutral-500 dark:text-neutral-400">Ready</div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center gap-1 bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/20 dark:border-orange-500/25 rounded-2xl backdrop-blur-sm p-5 text-center">
+                            <span class="material-icons text-2xl text-orange-600 dark:text-orange-400">shield</span>
+                            <div class="text-xs text-neutral-600 dark:text-neutral-300">2FA Auth</div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center gap-1 bg-white/60 dark:bg-neutral-800/40 border border-neutral-200/70 dark:border-neutral-700/60 rounded-2xl backdrop-blur-sm p-5 text-center">
+                            <span class="material-icons text-2xl text-red-600 dark:text-red-400">bolt</span>
+                            <div class="text-xs text-neutral-600 dark:text-neutral-300">JWT Ready</div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center gap-1 bg-white/60 dark:bg-neutral-800/40 border border-neutral-200/70 dark:border-neutral-700/60 rounded-2xl backdrop-blur-sm p-5 text-center">
+                            <span class="material-icons text-2xl text-amber-600 dark:text-amber-400">dark_mode</span>
+                            <div class="text-xs text-neutral-600 dark:text-neutral-300">Dark Mode</div>
                         </div>
                     </div>
                 </div>
