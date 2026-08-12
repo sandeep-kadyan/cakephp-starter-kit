@@ -4,8 +4,8 @@ declare(strict_types=1);
 namespace App\Middleware;
 
 use App\Service\EnvironmentService;
-use Cake\Core\Configure;
 use Cake\Datasource\FactoryLocator;
+use Cake\Log\Log;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -37,27 +37,34 @@ class ActivityTrackerMiddleware implements MiddlewareInterface
             }
         }
 
-        // Do not store activities for debug requests or JSON requests
+        // Do not store activities for JSON/AJAX requests (they are table data fetches)
         $acceptHeader = $request->getHeaderLine('Accept');
-        if (Configure::read('debug') === true || strpos($acceptHeader, 'application/json') !== false) {
+        if (strpos($acceptHeader, 'application/json') !== false) {
             return $handler->handle($request);
         }
 
-        $env = new EnvironmentService($request);
-        $activities = FactoryLocator::get('Table')->get('activities');
-        $activity = $activities->newEntity([
-            'user_id' => $identity?->getIdentifier(),
-            'url' => $env->getRequestUri(),
-            'browser' => $env->getBrowser(),
-            'os' => $env->getOs(),
-            'device' => $env->getDevice(),
-            'ip_address' => $env->getRemoteAddr(),
-            'location' => 'delhi', //gethostbyaddr($ip)
-            'user_agent' => $env->getUserAgent(),
-            'read_time' => 0,
-            'interests' => 'home',
-        ]);
-        $activities->save($activity);
+        // Track activity for the authenticated user so each user has their own feed
+        $userId = $identity?->getIdentifier();
+        if ($userId) {
+            try {
+                $env = new EnvironmentService($request);
+                $activities = FactoryLocator::get('Table')->get('activities');
+                $activity = $activities->newEntity([
+                    'user_id' => $userId,
+                    'url' => $env->getRequestUri(),
+                    'browser' => $env->getBrowser(),
+                    'os' => $env->getOs(),
+                    'device' => $env->getDevice(),
+                    'ip_address' => $env->getRemoteAddr(),
+                    'location' => 'delhi', //gethostbyaddr($ip)
+                    'user_agent' => $env->getUserAgent(),
+                ]);
+                $activities->save($activity);
+            } catch (\Throwable $e) {
+                // Activity tracking must never break the request
+                Log::error('Failed to track activity: ' . $e->getMessage());
+            }
+        }
 
         return $handler->handle($request);
     }

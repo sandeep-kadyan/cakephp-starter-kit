@@ -66,6 +66,8 @@
  * -----------------------------------------------------------------------------
  */
 $this->assign('title', $this->getName());
+$this->assign('pageHeader.description', __('Browse, search, and manage records in this AJAX-powered table.'));
+$this->assign('pageHeader.icon', 'table');
 ?>
 <?= $this->cell('AjaxTable::index', [
     'controller' => $this->getName(),

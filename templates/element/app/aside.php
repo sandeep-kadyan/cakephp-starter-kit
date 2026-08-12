@@ -18,45 +18,52 @@ use Cake\Core\Configure;
         this.sidebarMini = !this.sidebarMini;
         this.sidebarLocked = !this.sidebarMini;
     }
-}" :class="sidebarMini ? 'sidebar-mini' : ''">
+}">
     <aside
-        :class="sidebarMini ? 'w-[64px]' : 'w-64'"
-        class="bg-white border-r border-neutral-200 dark:border-neutral-700 dark:bg-transparent p-3 justify-center z-99 hidden lg:flex"
-        x-show="!mobileMenuOpen || sidebarMini"
+        :class="sidebarMini ? 'w-16' : 'w-64'"
+        class="hidden lg:flex flex-col bg-sidebar text-sidebar-foreground border-r border-border p-3 transition-all duration-300 shrink-0"
         @keydown.window.escape="mobileMenuOpen = false"
         @mouseenter="handleSidebarMouseEnter()"
     >
         <?= $this->element('menu/sidebar') ?>
     </aside>
-    <!-- Mobile sidebar overlay -->
-    <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-50 bg-black bg-opacity-40 flex lg:hidden" x-transition @click="mobileMenuOpen = false">
-        <aside class="w-64 bg-neutral-100 dark:bg-neutral-800 h-full shadow-lg p-3 flex flex-col" @click.stop>
-            <?= $this->element('menu/sidebar') ?>
-        </aside>
-    </div>
-    <div class="flex-1 flex flex-col overflow-y-auto">
-        <header class="py-3 px-6 flex items-center justify-between align-middle border-b border-neutral-200 dark:border-neutral-700">
-            <button class="lg:hidden mr-2 rounded-md flex items-center align-middle h-9" @click="mobileMenuOpen = true">
-                <span class="material-icons dark:text-white hover:text-black text-2xl">chrome_reader_mode</span>
-            </button>
-            <div class="hidden lg:flex items-center align-middle">
-                <button class="lg:flex items-center align-middle"  x-cloak @click="toggleSidebar()">
-                    <svg :class="sidebarMini ? 'rotate-180' : 'rotate-0'" class="transition-transform duration-300 dark:text-white hover:text-black shrink-0 text-2xl" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path><path d="m10 15-3-3 3-3"></path></svg>
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="py-3 px-4 lg:px-6 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <button type="button" class="lg:hidden rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none" @click="mobileMenuOpen = true" aria-label="<?= __('Open menu') ?>">
+                    <i data-lucide="menu" class="text-2xl"></i>
                 </button>
-                <div class="bg-border border border-neutral-600 shrink-0 h-3 ml-2"></div>
-                <?= $this->element('base/breadcrumbs') ?>
+                <button type="button" class="hidden lg:flex items-center rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none" @click="toggleSidebar()" aria-label="<?= __('Toggle sidebar') ?>">
+                    <svg :class="sidebarMini ? 'rotate-180' : 'rotate-0'" class="transition-transform duration-300" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path><path d="m10 15-3-3 3-3"></path></svg>
+                </button>
+                <div class="hidden lg:flex items-center gap-2">
+                    <div class="h-3 shrink-0"></div>
+                    <?= $this->element('base/breadcrumbs') ?>
+                </div>
             </div>
-            <div class="flex items-center align-middle gap-2 lg:gap-4">
+            <div class="flex items-center gap-1 lg:gap-2">
                 <?= $this->element('base/theme') ?>
                 <?= $this->element('base/notifications') ?>
-                <?= $this->element('menu/profile') ?>
             </div>
         </header>
-        <main class="flex-1 p-6 overflow-y-auto">
-        <div class="lg:hidden pb-6">
-            <?= $this->element('base/breadcrumbs') ?>
-        </div>
+        <main class="flex-1 p-4 lg:p-6 overflow-y-auto">
+            <div class="lg:hidden pb-4">
+                <?= $this->element('base/breadcrumbs') ?>
+            </div>
+            <?= $this->element('base/page_header') ?>
             <?= $this->fetch('content') ?>
         </main>
+    </div>
+
+    <div x-show="mobileMenuOpen" x-cloak class="fixed inset-0 z-50 lg:hidden" x-transition>
+        <div class="absolute inset-0 bg-foreground/50" @click="mobileMenuOpen = false"></div>
+        <aside class="absolute inset-y-0 left-0 w-64 bg-sidebar text-sidebar-foreground shadow-xl p-3 overflow-y-auto">
+            <div class="flex items-center justify-end mb-2">
+                <button type="button" class="rounded-md p-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none" @click="mobileMenuOpen = false" aria-label="<?= __('Close menu') ?>">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <?= $this->element('menu/sidebar') ?>
+        </aside>
     </div>
 </div>

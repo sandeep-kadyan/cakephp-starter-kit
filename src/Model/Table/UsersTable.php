@@ -47,6 +47,18 @@ class UsersTable extends Table
         $this->hasMany('Activities', [
             'foreignKey' => 'user_id',
         ]);
+
+        $this->hasMany('UserSettings', [
+            'foreignKey' => 'user_id',
+        ]);
+
+        $this->hasMany('UserSessions', [
+            'foreignKey' => 'user_id',
+        ]);
+
+        $this->hasMany('PaymentMethods', [
+            'foreignKey' => 'user_id',
+        ]);
     }
 
     /**

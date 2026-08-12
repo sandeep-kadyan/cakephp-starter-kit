@@ -30,6 +30,9 @@ class AjaxTableBehavior extends Behavior
         'searchableFields' => [],
         'pageSize' => 10,
         'page' => 1,
+        // When true, results are scoped to the current user (via the `userId`
+        // request param) and default to newest-first ordering.
+        'userScoped' => false,
     ];
 
     /**
@@ -88,6 +91,37 @@ class AjaxTableBehavior extends Behavior
             }
         }
 
+        // Apply per-column filters if provided
+        $filters = $params['filters'] ?? [];
+        if (is_array($filters) && !empty($filters)) {
+            $schemaColumns = $schema->columns();
+            $tableAlias = $this->_table->getAlias();
+            $filterConditions = [];
+            foreach ($filters as $field => $value) {
+                if (!is_string($field) || !in_array($field, $schemaColumns, true)) {
+                    continue;
+                }
+                if ($value === null || $value === '' || is_array($value)) {
+                    continue;
+                }
+                $filterConditions[$tableAlias . '.' . $field . ' LIKE'] = '%' . $value . '%';
+            }
+            if (!empty($filterConditions)) {
+                $query->where($filterConditions);
+            }
+        }
+
+        // Scope results to the current user for user-scoped tables
+        if ($this->getConfig('userScoped')) {
+            $userId = $params['userId'] ?? null;
+            if ($userId) {
+                $query->where([$this->_table->getAlias() . '.user_id' => $userId]);
+            } else {
+                // No authenticated user: return no rows
+                $query->where(['1 = 0']);
+            }
+        }
+
         // Apply sorting if specified, otherwise use default order
         if (isset($params['sort']) && isset($params['direction'])) {
             $orderField = $params['sort'];
@@ -95,8 +129,13 @@ class AjaxTableBehavior extends Behavior
             // Always qualify with table alias to avoid ambiguity
             $query->orderBy([$this->_table->getAlias() . '.' . $orderField => $orderDirection]);
         } else {
-            // Apply default ordering, also qualified
-            $query->orderBy([$this->_table->getAlias() . '.id' => 'DESC']);
+            if ($this->getConfig('userScoped')) {
+                // User-scoped tables (e.g. activities) default to newest first
+                $query->orderBy([$this->_table->getAlias() . '.created' => 'DESC']);
+            } else {
+                // Apply default ordering, also qualified
+                $query->orderBy([$this->_table->getAlias() . '.id' => 'DESC']);
+            }
         }
 
         // Calculate pagination offsets

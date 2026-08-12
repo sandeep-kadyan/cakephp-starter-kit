@@ -67,8 +67,16 @@ class AppController extends Controller
         // Call the parent beforeFilter to ensure any parent logic is executed
         parent::beforeFilter($event);
 
-        // Allow unauthenticated access to the 'display', 'login', and 'verify' actions
-        $this->Authentication->allowUnauthenticated(['display', 'login', 'verify']);
+        // Allow unauthenticated access to public authentication actions
+        $this->Authentication->allowUnauthenticated([
+            'display',
+            'login',
+            'register',
+            'forgotPassword',
+            'resetPassword',
+            'verify',
+            'verifyOtp',
+        ]);
     }
 
     /**
@@ -84,6 +92,22 @@ class AppController extends Controller
     {
         parent::beforeRender($event);
 
+        // Resolve the initial theme preference (light/dark/system) for the
+        // theme toggle. Falls back to 'system' when the user has no preference.
+        $defaultTheme = 'system';
+        $identity = $this->getRequest()->getAttribute('identity');
+        if ($identity) {
+            try {
+                $value = $this->fetchTable('UserSettings')->getValue($identity->getIdentifier(), 'appearance.theme');
+                if ($value !== null) {
+                    $defaultTheme = (string)$value;
+                }
+            } catch (\Throwable $e) {
+                // Ignore; the toggle falls back to its default.
+            }
+        }
+        $this->set('defaultTheme', $defaultTheme);
+
         // Get the current controller name
         $controller = $this->getName();
 
@@ -96,8 +120,8 @@ class AppController extends Controller
         // If the user is authenticated and not on the Pages controller, use the 'app' layout
         if ($this->request->getAttribute('identity') && $controller !== 'Pages') {
             $builder->setLayout('app');
-        // If the action is 'login' or 'verify', use the 'auth' layout
-        } elseif (in_array($action, ['login', 'verify'])) {
+        // If the action is an auth action, use the 'auth' layout
+        } elseif (in_array($action, ['login', 'register', 'forgotPassword', 'resetPassword', 'verify', 'verifyOtp'])) {
             $builder->setLayout('auth');
         // If the controller is 'Pages', use the 'default' layout
         } elseif ($controller == 'Pages') {
@@ -106,7 +130,13 @@ class AppController extends Controller
 
         // Set AjaxTable path
         if (in_array($action, ['index', 'view'])) {
-            $this->viewBuilder()->setTemplatePath('AjaxTable');
+            // Only use the AjaxTable template path for controllers backed by a
+            // real model table (e.g. Users, Activities). Controllers without a
+            // table class (e.g. Settings) fall through to their own templates.
+            $tableClass = \Cake\Core\App::className($this->getName(), 'Model/Table', 'Table');
+            if ($tableClass !== null) {
+                $this->viewBuilder()->setTemplatePath('AjaxTable');
+            }
         }
     }
 

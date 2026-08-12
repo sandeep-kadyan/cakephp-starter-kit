@@ -72,8 +72,9 @@ class ToastHelper extends Helper
 
         // Also handle any custom/default types
         foreach ($flashes as $flash) {
-            if (!in_array($flash['element'], $this->types, true)) {
-                $toasts[] = $this->toastScript($flash['message'], $flash['element'], $flash['params'] ?? []);
+            $element = str_replace('flash/', '', (string)$flash['element']);
+            if (in_array($element, $this->types, true)) {
+                $toasts[] = $this->toastScript($flash['message'], $element, $flash['params'] ?? []);
             }
         }
 
@@ -186,22 +187,22 @@ class ToastHelper extends Helper
         //pr($type); die;
         $escaped = h($message);
         $color = match ($type) {
-            'success' => 'bg-green-500 text-white',
-            'error' => 'bg-red-500 text-white',
-            'warning' => 'bg-yellow-500 text-white',
+            'success' => 'bg-emerald-500 text-white',
+            'error' => 'bg-destructive text-destructive-foreground',
+            'warning' => 'bg-amber-500 text-white',
             'info' => 'bg-blue-500 text-white',
-            default => '',
+            default => 'bg-card text-card-foreground',
         };
         $linkHtml = '';
         if (!empty($params['link']) && !empty($params['link_text'])) {
             $url = h($params['link']);
             $text = h($params['link_text']);
-            $linkHtml = "<a href=\"{$url}\" class=\"ml-2 underline font-semibold hover:text-neutral-200 dark:text-white transition\" target=\"_blank\">{$text}</a>";
+            $linkHtml = "<a href=\"{$url}\" class=\"ml-2 underline font-semibold hover:text-foreground transition\" target=\"_blank\">{$text}</a>";
         }
 
         // Add transition/animation classes
-        return "<div class=\"toast relative min-w-[250px] max-w-xs p-5 mb-2 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg {$color} dark:bg-neutral-800 dark:text-white opacity-100 translate-x-0 transition-all duration-500 flex items-start\">
-            <button class=\"toast-close absolute top-2 right-2 hover:text-neutral-300 dark:text-white focus:outline-none\" aria-label=\"Close\">
+        return "<div class=\"toast relative min-w-64 max-w-xs p-5 mb-2 border border-border rounded-xl shadow-lg {$color} opacity-100 translate-x-0 transition-all duration-500 flex items-start\">
+            <button class=\"toast-close absolute top-2 right-2 hover:text-foreground focus:outline-none\" aria-label=\"Close\">
                 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\" /></svg>
             </button>
             <div class=\"pr-6\">{$escaped}{$linkHtml}</div>

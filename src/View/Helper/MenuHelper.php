@@ -172,18 +172,18 @@ class MenuHelper extends Helper
                 $initialOpenState = $isActive['open'] ? 'true' : 'false';
                 // Render dropdown for menu items with children
                 $html .= '<li class="relative" x-data="{ open: ' . $initialOpenState . ' }">';
-                $html .= '<button type="button" @click="open = !open" class="flex items-center gap-3 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-700 rounded-lg">';
-                $html .= '<span class="material-icons text-neutral-600 dark:text-white">' . ($item['icon'] ?? 'arrow_right') . '</span>';
-                $html .= '<span class="text-neutral-600 dark:text-white">' . __(h($item['label'])) . '</span>';
-                $html .= '<span class="material-icons ml-2">expand_more</span>';
+                $html .= '<button type="button" @click="open = !open" class="flex items-center gap-3 px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-lg">';
+                $html .= '<i data-lucide="' . ($item['icon'] ?? 'chevron-right') . '" class="text-muted-foreground"></i>';
+                $html .= '<span class="text-muted-foreground">' . __(h($item['label'])) . '</span>';
+                $html .= '<i data-lucide="chevron-down" class="ml-2"></i>';
                 $html .= '</button>';
-                $html .= '<ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-white dark:bg-neutral-800 border rounded shadow-lg z-50">';
+                $html .= '<ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-popover border-border rounded shadow-lg z-50">';
                 foreach ($item['children'] as $child) {
                     $html .= '<li>';
                     $html .= $this->Html->link(
-                        '<span class="material-icons text-neutral-600 dark:text-white">' . ($child['icon'] ?? 'remove') . '</span><span class="text-neutral-600 dark:text-white">' . __(h($child['label'])) . '</span>',
+                        '<i data-lucide="' . ($child['icon'] ?? 'minus') . '" class="text-muted-foreground"></i><span class="text-muted-foreground">' . __(h($child['label'])) . '</span>',
                         $child['url'] ?? '#',
-                        ['class' => 'flex items-center gap-3 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-700 rounded-lg', 'escape' => false],
+                        ['class' => 'flex items-center gap-3 px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-lg', 'escape' => false],
                     );
                     $html .= '</li>';
                 }
@@ -191,12 +191,12 @@ class MenuHelper extends Helper
                 $html .= '</li>';
             } else {
                 // Render single menu item
-                $activeClass = $isActive['active'] ? ' active' : '';
+                $activeClass = $isActive['active'] ? ' bg-accent text-accent-foreground' : '';
                 $html .= '<li>';
                 $html .= $this->Html->link(
-                    '<span class="material-icons text-neutral-600 dark:text-white">' . ($item['icon'] ?? 'remove') . '</span><span class="text-neutral-600 dark:text-white">' . __(h($item['label'])) . '</span>',
+                    '<i data-lucide="' . ($item['icon'] ?? 'minus') . '" class="text-muted-foreground"></i><span class="text-muted-foreground">' . __(h($item['label'])) . '</span>',
                     $item['url'] ?? '#',
-                    ['class' => 'flex items-center gap-3 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-700 rounded-lg' . $activeClass, 'escape' => false],
+                    ['class' => 'flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground text-muted-foreground' . $activeClass, 'escape' => false],
                 );
                 $html .= '</li>';
             }
@@ -233,20 +233,20 @@ class MenuHelper extends Helper
             $isActive = $this->isActive($item);
             $hasChildren = isset($item['children']) && is_array($item['children']) && count($item['children']) > 0;
             $slug = $this->slugify(($parentKey ? $parentKey . '-' : '') . ($item['id'] ?? $item['label'] ?? 'item') . '-' . $index);
-            $activeClass = $isActive['active'] ? ' active' : '';
-            $openClass = $isActive['open'] ? ' open' : '';
+            $activeClass = $isActive['active'] ? ' bg-accent text-accent-foreground' : '';
+            $openClass = $isActive['open'] ? ' text-accent-foreground' : '';
             if ($hasChildren) {
                 if ($isRoot) {
                     $html .= '<div class="relative mb-2">';
                     $html .= sprintf(
-                        '<button type="button" @click="openIndex = openIndex === %1$d ? null : %1$d" class="flex items-center w-full p-2 rounded-md text-sm dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700 %2$s%3$s">',
+                        '<button type="button" @click="openIndex = openIndex === %1$d ? null : %1$d" class="flex items-center w-full p-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground %2$s%3$s">',
                         $index,
                         $activeClass,
                         $openClass,
                     );
-                    $html .= '<span class="material-icons sidebar-icon">' . h($item['icon'] ?? 'arrow_right') . '</span>';
-                    $html .= '<span class="flex-1 text-left text-sm sidebar-text ml-2">' . h($item['label']) . '</span>';
-                    $html .= '<span class="material-icons sidebar-icon-sm ml-auto text-xs expand" x-text="openIndex === ' . $index . ' ? \'expand_less\' : \'expand_more\'"></span>';
+                    $html .= '<i data-lucide="' . h($item['icon'] ?? 'chevron-right') . '" class="text-muted-foreground"></i>';
+                    $html .= '<span class="flex-1 text-left text-sm ml-2" :class="sidebarMini ? \'hidden\' : \'inline\'">' . h($item['label']) . '</span>';
+                    $html .= '<i data-lucide="chevron-down" class="ml-auto text-xs transition-transform duration-300" :class="{ \'rotate-180\': openIndex === ' . $index . ', \'hidden\': sidebarMini, \'inline\': !sidebarMini }"></i>';
                     $html .= '</button>';
                     $html .= '<div x-show="openIndex === ' . $index . '" x-transition class="pl-4 pt-2 space-y-2">';
                     $html .= $this->renderSidebarMenu($item['children'], $currentUrl, $slug);
@@ -255,10 +255,10 @@ class MenuHelper extends Helper
                     // For nested items, initialize open state based on whether any child is active
                     $initialOpenState = $isActive['open'] ? 'true' : 'false';
                     $html .= '<div class="relative mb-2" x-data="{ open: ' . $initialOpenState . ' }">';
-                    $html .= '<button type="button" @click="open = !open" class="flex items-center w-full p-2 rounded-md text-sm dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700">';
-                    $html .= '<span class="material-icons sidebar-icon">' . h($item['icon'] ?? 'arrow_right') . '</span>';
-                    $html .= '<span class="flex-1 text-left text-sm sidebar-text ml-2">' . h($item['label']) . '</span>';
-                    $html .= '<span class="material-icons sidebar-icon-sm ml-auto text-xs expand" x-text="open ? \'expand_less\' : \'expand_more\'"></span>';
+                    $html .= '<button type="button" @click="open = !open" class="flex items-center w-full p-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground">';
+                    $html .= '<i data-lucide="' . h($item['icon'] ?? 'chevron-right') . '" class="text-muted-foreground"></i>';
+                    $html .= '<span class="flex-1 text-left text-sm ml-2" :class="sidebarMini ? \'hidden\' : \'inline\'">' . h($item['label']) . '</span>';
+                    $html .= '<i data-lucide="chevron-down" class="ml-auto text-xs transition-transform duration-300" :class="{ \'rotate-180\': open, \'hidden\': sidebarMini, \'inline\': !sidebarMini }"></i>';
                     $html .= '</button>';
                     $html .= '<div x-show="open" x-transition class="pl-4 pt-2 space-y-2">';
                     $html .= $this->renderSidebarMenu($item['children'], $currentUrl, $slug);
@@ -266,10 +266,10 @@ class MenuHelper extends Helper
                 }
             } else {
                 $html .= $this->Html->link(
-                    '<span class="material-icons sidebar-icon">' . h($item['icon'] ?? 'remove') . '</span><span class="sidebar-text ml-2">' . h($item['label']) . '</span>',
+                    '<i data-lucide="' . h($item['icon'] ?? 'minus') . '" class="text-muted-foreground"></i><span class="ml-2" :class="sidebarMini ? \'hidden\' : \'inline\'">' . h($item['label']) . '</span>',
                     $item['url'] ?? '#',
                     [
-                        'class' => 'flex items-center p-2 rounded-md text-sm dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700' . $activeClass,
+                        'class' => 'flex items-center p-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground' . $activeClass,
                         'escape' => false,
                     ],
                 );
@@ -293,38 +293,38 @@ class MenuHelper extends Helper
         $isTop = $parentKey === '';
         // Mega menu for top-level only
         if ($isTop) {
-            $html = '<ul class="flex gap-4 items-center dark:text-white">';
+            $html = '<ul class="flex gap-4 items-center text-foreground">';
             foreach ($menus as $index => $item) {
                 $hasChildren = isset($item['children']) && is_array($item['children']) && count($item['children']) > 0;
                 $slug = $this->slugify(($parentKey ? $parentKey . '-' : '') . ($item['id'] ?? $item['label'] ?? 'item') . '-' . $index);
                 if ($hasChildren) {
                     $html .= '<li class="relative group" x-data="{ open: false }">';
-                    $html .= '<button type="button" @click="open = !open" @mouseenter="open = true" @mouseleave="open = false" class="flex items-center gap-1 px-3 py-2 hover:bg-neutral-50 rounded dark:text-white dark:hover:bg-white/20 focus:outline-none">';
+                    $html .= '<button type="button" @click="open = !open" @mouseenter="open = true" @mouseleave="open = false" class="flex items-center gap-1 px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded text-foreground focus:outline-none">';
                     $html .= h($item['label']);
-                    $html .= '<span class="material-icons text-xs ml-1">expand_more</span>';
+                    $html .= '<i data-lucide="chevron-down" class="text-xs ml-1"></i>';
                     $html .= '</button>';
                     // Mega menu dropdown
-                    $html .= '<div x-show="open" @mouseenter="open = true" @mouseleave="open = false" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-screen max-w-3xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg z-50 p-6 hidden md:block">';
+                    $html .= '<div x-show="open" @mouseenter="open = true" @mouseleave="open = false" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-screen max-w-3xl bg-popover border-border rounded-lg shadow-lg z-50 p-6 hidden md:block">';
                     $html .= '<div class="grid grid-cols-2 md:grid-cols-3 gap-6">';
                     foreach ($item['children'] as $child) {
                         $html .= '<div>';
                         $html .= '<div class="font-semibold mb-2 flex items-center">';
-                        $html .= '<span class="material-icons mr-2">' . h($child['icon'] ?? 'remove') . '</span>';
+                        $html .= '<i data-lucide="' . h($child['icon'] ?? 'minus') . '" class="mr-2"></i>';
                         $html .= h($child['label']);
                         $html .= '</div>';
                         if (!empty($child['children'])) {
                             foreach ($child['children'] as $grandchild) {
                                 $html .= $this->Html->link(
-                                    '<span class="material-icons mr-1 text-xs align-middle">' . h($grandchild['icon'] ?? 'remove') . '</span>' . h($grandchild['label']),
+                                    '<i data-lucide="' . h($grandchild['icon'] ?? 'minus') . '" class="mr-1 text-xs align-middle"></i>' . h($grandchild['label']),
                                     $grandchild['url'] ?? '#',
-                                    ['class' => 'block px-2 py-1 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 dark:text-white dark:hover:bg-white/20 rounded', 'escape' => false],
+                                    ['class' => 'block px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground text-foreground hover:bg-accent hover:text-accent-foreground rounded', 'escape' => false],
                                 );
                             }
                         } else {
                             $html .= $this->Html->link(
                                 h($child['label']),
                                 $child['url'] ?? '#',
-                                ['class' => 'block px-2 py-1 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 dark:text-white dark:hover:bg-white/20 rounded'],
+                                ['class' => 'block px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground text-foreground hover:bg-accent hover:text-accent-foreground rounded'],
                             );
                         }
                         $html .= '</div>';
@@ -332,22 +332,22 @@ class MenuHelper extends Helper
                     $html .= '</div>';
                     $html .= '</div>';
                     // Mobile: stack as vertical dropdown
-                    $html .= '<ul x-show="open" @click.away="open = false" x-transition class="md:hidden absolute left-0 mt-2 w-64 bg-white dark:bg-neutral-800 border rounded shadow-lg z-50">';
+                    $html .= '<ul x-show="open" @click.away="open = false" x-transition class="md:hidden absolute left-0 mt-2 w-64 bg-popover border-border rounded shadow-lg z-50">';
                     foreach ($item['children'] as $child) {
                         $html .= '<li>';
                         $html .= $this->Html->link(
-                            '<span class="material-icons mr-2">' . h($child['icon'] ?? 'remove') . '</span>' . h($child['label']),
+                            '<i data-lucide="' . h($child['icon'] ?? 'minus') . '" class="mr-2"></i>' . h($child['label']),
                             $child['url'] ?? '#',
-                            ['class' => 'block px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-700 dark:text-white dark:hover:bg-white/20 rounded', 'escape' => false],
+                            ['class' => 'block px-3 py-2 hover:bg-accent hover:text-accent-foreground text-foreground hover:bg-accent hover:text-accent-foreground rounded', 'escape' => false],
                         );
                         if (!empty($child['children'])) {
                             $html .= '<ul class="pl-4">';
                             foreach ($child['children'] as $grandchild) {
                                 $html .= '<li>';
                                 $html .= $this->Html->link(
-                                    '<span class="material-icons mr-1 text-xs align-middle">' . h($grandchild['icon'] ?? 'remove') . '</span>' . h($grandchild['label']),
+                                    '<i data-lucide="' . h($grandchild['icon'] ?? 'minus') . '" class="mr-1 text-xs align-middle"></i>' . h($grandchild['label']),
                                     $grandchild['url'] ?? '#',
-                                    ['class' => 'block px-2 py-1 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 dark:text-white dark:hover:bg-white/20 rounded', 'escape' => false],
+                                    ['class' => 'block px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground text-foreground hover:bg-accent hover:text-accent-foreground rounded', 'escape' => false],
                                 );
                                 $html .= '</li>';
                             }
@@ -362,7 +362,7 @@ class MenuHelper extends Helper
                     $html .= $this->Html->link(
                         h($item['label']),
                         $item['url'] ?? '#',
-                        ['class' => 'block px-3 py-2 hover:bg-neutral-50 dark:text-white dark:hover:bg-white/20 rounded'],
+                        ['class' => 'block px-3 py-2 hover:bg-accent hover:text-accent-foreground text-foreground hover:bg-accent hover:text-accent-foreground rounded'],
                     );
                     $html .= '</li>';
                 }
@@ -372,19 +372,19 @@ class MenuHelper extends Helper
             return $html;
         }
         // For nested children, fallback to simple dropdown
-        $html = '<ul class="absolute left-0 mt-2 w-48 bg-white dark:bg-transparent border rounded shadow-lg z-50" x-show=\'open\' x-transition>';
+        $html = '<ul class="absolute left-0 mt-2 w-48 bg-popover border-border rounded shadow-lg z-50" x-show=\'open\' x-transition>';
         foreach ($menus as $index => $item) {
             $hasChildren = isset($item['children']) && is_array($item['children']) && count($item['children']) > 0;
             $slug = $this->slugify(($parentKey ? $parentKey . '-' : '') . ($item['id'] ?? $item['label'] ?? 'item') . '-' . $index);
             if ($hasChildren) {
                 $html .= '<li class="relative group" x-data="{ open: false }">';
                 $html .= sprintf(
-                    '<button type="button" @click="open = !open" class="flex items-center gap-1 px-3 py-2 hover:bg-neutral-50 rounded focus:outline-none">',
+                    '<button type="button" @click="open = !open" class="flex items-center gap-1 px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded focus:outline-none">',
                 );
                 $html .= h($item['label']);
-                $html .= '<span class="material-icons text-xs ml-1">expand_more</span>';
+                $html .= '<i data-lucide="chevron-down" class="text-xs ml-1"></i>';
                 $html .= '</button>';
-                $html .= '<ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-white dark:bg-neutral-800 border rounded dark:text-white dark:hover:bg-white/20 shadow-lg z-50">';
+                $html .= '<ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-popover border-border rounded text-foreground hover:bg-accent hover:text-accent-foreground shadow-lg z-50">';
                 $html .= $this->renderHeaderMenu($item['children'], $currentUrl, $slug);
                 $html .= '</ul>';
                 $html .= '</li>';
@@ -393,7 +393,7 @@ class MenuHelper extends Helper
                 $html .= $this->Html->link(
                     h($item['label']),
                     $item['url'] ?? '#',
-                    ['class' => 'block px-3 py-2 hover:bg-neutral-50 dark:text-white dark:hover:bg-white/20 rounded'],
+                    ['class' => 'block px-3 py-2 hover:bg-accent hover:text-accent-foreground text-foreground hover:bg-accent hover:text-accent-foreground rounded'],
                 );
                 $html .= '</li>';
             }
@@ -421,27 +421,27 @@ class MenuHelper extends Helper
                 // Initialize open state based on whether any child is active
                 $initialOpenState = $isActive['open'] ? 'true' : 'false';
                 $html .= '<div class="relative" x-data="{ open: ' . $initialOpenState . ' }">';
-                $html .= '<button type="button" @click="open = !open" class="flex items-center p-2 rounded focus:outline-none gap-3 text-sm dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700">';
-                $html .= '<span class="material-icons">' . ($item['icon'] ?? 'arrow_right') . '</span>';
-                $html .= '<span class="sidebar-text ml-2">' . __(h($item['label'])) . '</span>';
-                $html .= '<span class="material-icons ml-2">expand_more</span>';
+                $html .= '<button type="button" @click="open = !open" class="flex items-center p-2 rounded focus:outline-none gap-3 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground">';
+                $html .= '<i data-lucide="' . ($item['icon'] ?? 'chevron-right') . '" class="text-muted-foreground"></i>';
+                $html .= '<span class="ml-2" :class="sidebarMini ? \'hidden\' : \'inline\'">' . __(h($item['label'])) . '</span>';
+                $html .= '<i data-lucide="chevron-down" class="ml-2" :class="sidebarMini ? \'hidden\' : \'inline\'"></i>';
                 $html .= '</button>';
                 $html .= '<div x-show="open" @click.away="open = false" x-transition class="pl-4 pt-2 space-y-2">';
                 foreach ($item['children'] as $child) {
                     $html .= $this->Html->link(
-                        '<span class="material-icons">' . ($child['icon'] ?? 'remove') . '</span><span class="sidebar-text ml-2">' . __(h($child['label'])) . '</span>',
+                        '<i data-lucide="' . ($child['icon'] ?? 'minus') . '" class="text-muted-foreground"></i><span class="ml-2" :class="sidebarMini ? \'hidden\' : \'inline\'">' . __(h($child['label'])) . '</span>',
                         $child['url'] ?? '#',
-                        ['class' => 'flex items-center p-2 rounded focus:outline-none gap-3 text-sm dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700', 'escape' => false],
+                        ['class' => 'flex items-center p-2 rounded focus:outline-none gap-3 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground', 'escape' => false],
                     );
                 }
                 $html .= '</div>';
                 $html .= '</div>';
             } else {
-                $activeClass = $isActive['active'] ? ' active' : '';
+                $activeClass = $isActive['active'] ? ' bg-accent text-accent-foreground' : '';
                 $html .= $this->Html->link(
-                    '<span class="material-icons">' . ($item['icon'] ?? 'remove') . '</span><span class="sidebar-text ml-2">' . __(h($item['label'])) . '</span>',
+                    '<i data-lucide="' . ($item['icon'] ?? 'minus') . '" class="text-muted-foreground"></i><span class="ml-2" :class="sidebarMini ? \'hidden\' : \'inline\'">' . __(h($item['label'])) . '</span>',
                     $item['url'] ?? '#',
-                    ['class' => 'flex items-center p-2 rounded focus:outline-none gap-3 text-sm dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-700' . $activeClass, 'escape' => false],
+                    ['class' => 'flex items-center p-2 rounded focus:outline-none gap-3 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground' . $activeClass, 'escape' => false],
                 );
             }
         }
@@ -468,30 +468,30 @@ class MenuHelper extends Helper
                 // Initialize open state based on whether any child is active
                 $initialOpenState = $isActive['open'] ? 'true' : 'false';
                 $html .= '<li class="relative" x-data="{ open: ' . $initialOpenState . ' }">';
-                $html .= '<button type="button" @click="open = !open" class="flex items-center p-2 gap-3 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700">';
-                $html .= '<span class="material-icons">' . ($item['icon'] ?? 'arrow_right') . '</span>';
+                $html .= '<button type="button" @click="open = !open" class="flex items-center p-2 gap-3 text-sm hover:bg-accent hover:text-accent-foreground">';
+                $html .= '<i data-lucide="' . ($item['icon'] ?? 'chevron-right') . '"></i>';
                 $html .= '<span>' . __(h($item['label'])) . '</span>';
-                $html .= '<span class="material-icons ml-2">expand_more</span>';
+                $html .= '<i data-lucide="chevron-down" class="ml-2"></i>';
                 $html .= '</button>';
-                $html .= '<ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-white dark:bg-neutral-800 border rounded shadow-lg z-50">';
+                $html .= '<ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-popover border-border rounded shadow-lg z-50">';
                 foreach ($item['children'] as $child) {
                     $html .= '<li>';
                     $html .= $this->Html->link(
-                        '<span class="material-icons">' . ($child['icon'] ?? 'remove') . '</span><span>' . __(h($child['label'])) . '</span>',
+                        '<i data-lucide="' . ($child['icon'] ?? 'minus') . '"></i><span>' . __(h($child['label'])) . '</span>',
                         $child['url'] ?? '#',
-                        ['class' => 'flex items-center p-2 gap-3 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700', 'escape' => false],
+                        ['class' => 'flex items-center p-2 gap-3 text-sm hover:bg-accent hover:text-accent-foreground', 'escape' => false],
                     );
                     $html .= '</li>';
                 }
                 $html .= '</ul>';
                 $html .= '</li>';
             } else {
-                $activeClass = $isActive['active'] ? ' active' : '';
+                $activeClass = $isActive['active'] ? ' bg-accent text-accent-foreground' : '';
                 $html .= '<li>';
                 $html .= $this->Html->link(
-                    '<span class="material-icons">' . ($item['icon'] ?? 'remove') . '</span><span>' . __(h($item['label'])) . '</span>',
+                    '<i data-lucide="' . ($item['icon'] ?? 'minus') . '"></i><span>' . __(h($item['label'])) . '</span>',
                     $item['url'] ?? '#',
-                    ['class' => 'flex items-center p-2 gap-3 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700' . $activeClass, 'escape' => false],
+                    ['class' => 'flex items-center p-2 gap-3 text-sm hover:bg-accent hover:text-accent-foreground' . $activeClass, 'escape' => false],
                 );
                 $html .= '</li>';
             }
@@ -519,30 +519,30 @@ class MenuHelper extends Helper
                 // Initialize open state based on whether any child is active
                 $initialOpenState = $isActive['open'] ? 'true' : 'false';
                 $html .= '<li class="relative" x-data="{ open: ' . $initialOpenState . ' }">';
-                $html .= '<button type="button" @click="open = !open" class="flex items-center p-2 gap-3 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700">';
-                $html .= '<span class="material-icons">' . ($item['icon'] ?? 'arrow_right') . '</span>';
-                $html .= '<span class="text-neutral-600">' . __(h($item['label'])) . '</span>';
-                $html .= '<span class="material-icons ml-2">expand_more</span>';
+                $html .= '<button type="button" @click="open = !open" class="flex items-center p-2 gap-3 text-sm hover:bg-accent hover:text-accent-foreground">';
+                $html .= '<i data-lucide="' . ($item['icon'] ?? 'chevron-right') . '"></i>';
+                $html .= '<span class="text-muted-foreground">' . __(h($item['label'])) . '</span>';
+                $html .= '<i data-lucide="chevron-down" class="ml-2"></i>';
                 $html .= '</button>';
-                $html .= '<ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-white dark:bg-neutral-800 border rounded shadow-lg z-50">';
+                $html .= '<ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-popover border-border rounded shadow-lg z-50">';
                 foreach ($item['children'] as $child) {
                     $html .= '<li>';
                     $html .= $this->Html->link(
-                        '<span class="material-icons">' . ($child['icon'] ?? 'remove') . '</span><span class="text-neutral-600">' . __(h($child['label'])) . '</span>',
+                        '<i data-lucide="' . ($child['icon'] ?? 'minus') . '"></i><span class="text-muted-foreground">' . __(h($child['label'])) . '</span>',
                         $child['url'] ?? '#',
-                        ['class' => 'flex items-center p-2 gap-3 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700', 'escape' => false],
+                        ['class' => 'flex items-center p-2 gap-3 text-sm hover:bg-accent hover:text-accent-foreground', 'escape' => false],
                     );
                     $html .= '</li>';
                 }
                 $html .= '</ul>';
                 $html .= '</li>';
             } else {
-                $activeClass = $isActive['active'] ? ' active' : '';
+                $activeClass = $isActive['active'] ? ' bg-accent text-accent-foreground' : '';
                 $html .= '<li>';
                 $html .= $this->Html->link(
-                    '<span class="material-icons">' . ($item['icon'] ?? 'remove') . '</span><span class="text-neutral-600">' . __(h($item['label'])) . '</span>',
+                    '<i data-lucide="' . ($item['icon'] ?? 'minus') . '"></i><span class="text-muted-foreground">' . __(h($item['label'])) . '</span>',
                     $item['url'] ?? '#',
-                    ['class' => 'flex items-center p-2 gap-3 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-700' . $activeClass, 'escape' => false],
+                    ['class' => 'flex items-center p-2 gap-3 text-sm hover:bg-accent hover:text-accent-foreground' . $activeClass, 'escape' => false],
                 );
                 $html .= '</li>';
             }

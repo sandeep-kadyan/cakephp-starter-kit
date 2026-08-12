@@ -15,12 +15,14 @@
  */
 $this->setLayout('app');
 $this->assign('title', 'Dashboard');
+$this->assign('pageHeader.description', __('Welcome back! Here is an overview of your application.'));
+$this->assign('pageHeader.icon', 'layout-dashboard');
 ?>
 <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-2">
-        <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-transparent"></div>
-        <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-transparent"></div>
-        <div class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-transparent"></div>
+        <div class="relative aspect-video overflow-hidden rounded-xl border border-border bg-card"></div>
+        <div class="relative aspect-video overflow-hidden rounded-xl border border-border bg-card"></div>
+        <div class="relative aspect-video overflow-hidden rounded-xl border border-border bg-card"></div>
     </div>
-    <div class="relative h-full aspect-video flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-transparent"></div>
+    <div class="relative h-full aspect-video flex-1 overflow-hidden rounded-xl border border-border bg-card"></div>
 </div>

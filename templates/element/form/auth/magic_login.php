@@ -17,12 +17,12 @@ $this->assign('title', 'Login');
         <?= $this->Form->control('email', [
             'placeholder' => 'email@example.com',
             'label' => false,
-            'class' => 'block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none'
+            'class' => 'block w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:outline-none'
         ]) ?>
     </fieldset>
     <div>
         <?= $this->Form->button(__('Login'), [
-            'class' => 'w-full py-2 px-4 bg-black hover:bg-gray-900 text-white font-semibold rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-gray-900'
+            'class' => 'w-full py-2 px-4 bg-primary text-primary-foreground font-semibold rounded-lg shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring'
         ]) ?>
     </div>
     <?= $this->Form->end() ?>

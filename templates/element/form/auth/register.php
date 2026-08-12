@@ -8,36 +8,52 @@ use Cake\Core\Configure;
 $this->assign('title', 'Register');
 ?>
 <div class="w-full max-w-md mx-auto">
-    <?= $this->Form->create(null, ['class' => 'space-y-5']) ?>
-    <h1 class="text-2xl font-bold text-center">Log in to your account</h1>
+    <?= $this->Form->create($user ?? null, ['class' => 'space-y-5']) ?>
+    <h1 class="text-2xl font-bold text-center">Create your account</h1>
     <fieldset class="mt-0">
-        <legend class="text-muted-foreground text-balance text-center mb-4"><?= __(sprintf('Login to your %s account', Configure::read('App.name', 'CakePHP'))) ?></legend>
+        <legend class="text-muted-foreground text-balance text-center mb-4"><?= __(sprintf('Register for your %s account', Configure::read('App.name', 'CakePHP'))) ?></legend>
+        <div class="mb-4">
+            <?= $this->Form->control('name', [
+                'placeholder' => 'Your full name',
+                'label' => ['class' => 'block text-sm font-medium text-foreground mb-1'],
+                'class' => 'block w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:outline-none'
+            ]) ?>
+        </div>
         <div class="mb-4">
             <?= $this->Form->control('username', [
-                'placeholder' => 'username or example@abc.com',
-                'label' => ['class' => 'block text-sm font-medium text-gray-700 mb-1'],
-                'class' => 'block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none'
+                'placeholder' => 'Choose a username',
+                'label' => ['class' => 'block text-sm font-medium text-foreground mb-1'],
+                'class' => 'block w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:outline-none'
             ]) ?>
         </div>
         <div class="mb-4">
-            <?= $this->Form->control('password', [
-                'label' => ['class' => 'block text-sm font-medium text-gray-700 mb-1'],
-                'class' => 'block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none'
+            <?= $this->Form->control('email', [
+                'placeholder' => 'example@abc.com',
+                'label' => ['class' => 'block text-sm font-medium text-foreground mb-1'],
+                'class' => 'block w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:outline-none'
             ]) ?>
         </div>
-        <div class="mb-4 flex items-center">
-            <?= $this->Form->control('remember_me', [
-                'type' => 'checkbox',
-                'label' => ['class' => 'ml-2 text-sm text-gray-600'],
-                'class' => 'h-4 w-4 text-black border-black rounded focus:ring-gray-900'
-            ]) ?>
-        </div>
+        <?= $this->element('form/auth/password', [
+            'name' => 'password',
+            'label' => 'Password',
+        ]) ?>
+        <?= $this->element('form/auth/password', [
+            'name' => 'confirm_password',
+            'label' => 'Confirm password',
+        ]) ?>
     </fieldset>
     <div>
-        <?= $this->Form->button(__('Login'), [
-            'class' => 'w-full py-2 px-4 bg-black hover:bg-gray-900 text-white font-semibold rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-gray-900'
+        <?= $this->Form->button(__('Create Account'), [
+            'class' => 'w-full py-2 px-4 bg-primary text-primary-foreground font-semibold rounded-lg shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring'
         ]) ?>
     </div>
     <?= $this->Form->end() ?>
+    <p class="mt-4 text-center text-sm text-muted-foreground">
+        <?= __('Already have an account?') ?>
+        <?= $this->Html->link(__('Log in'), [
+            'controller' => 'Users',
+            'action' => 'login',
+        ], ['class' => 'font-semibold text-foreground hover:underline']) ?>
+    </p>
     <?= $this->element('form/auth/footer') ?>
 </div>

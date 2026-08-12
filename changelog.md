@@ -18,6 +18,15 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **Theme token system**: Introduced a CSS-variable theme token system so the entire UI (backgrounds, text, cards, popovers, borders, inputs, focus rings, and shadows) is driven by variables in `webroot/css/app.css` only.
+  - `tailwind.config.js` now maps semantic colors (`background`, `foreground`, `card`, `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`, `input`, `ring`, `sidebar`) to CSS variables as RGB triplets, enabling opacity modifiers; `borderRadius` and `boxShadow` are also theme-driven.
+  - Light and dark themes flip via the `.dark` class — `dark:` color variants were removed from all templates.
+  - Replaced all hardcoded `neutral-*`/`gray-*`/`stone-*`/black/white colors with theme tokens across layouts, elements, helpers (Menu, AjaxTable, Toast), auth pages, and CRUD templates.
+  - Converted bake-style CRUD templates (`Activities`, `AuthRequests`, `Users`) to token-based Tailwind markup (tables, forms, detail views, and action buttons); added token-styled paginator and sort templates in `src/View/AppView.php`.
+  - Tokenized `config/form.php` form templates (inputs, buttons, selects, textareas, radio, labels, errors) and the form `errorClass`; removed the stale `neutral-*` classes and bootstrap `text-danger`.
+  - Tokenized `webroot/js/ajaxtable.js` (rows, dropdowns, checkboxes, headers) and replaced the custom `.spinner` class in `webroot/js/app.js` with Tailwind's `animate-spin`.
+  - Restricted the Tailwind content globs to `webroot/js` and `webroot/css` so build artifacts under `dist/` are not scanned for class names.
+
 - **Modern Welcome Page**: Redesigned `templates/Pages/welcome.php` with a SaaS-style landing page featuring a hero section with logo mockup, quick action buttons, system status grid, and a feature highlights section with three cards (Auth & Security, SaaS Dashboard, Dev Tools).
 
 - **Default Layout Header & Footer**: Extracted header and footer into reusable element files (`templates/element/base/header.php` and `templates/element/base/footer.php`) for maintainability. Updated the `default` layout to use these elements.

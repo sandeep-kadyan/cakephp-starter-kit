@@ -41,8 +41,21 @@ return [
         ],
         'auth' => [
             'layout' => 'split', // Layouts: split, card, muted, simple
-            'login' => 'login', // Login Typed: login, magic_login, social login
-            'toast' => 'top-right' // Toast: top-left, top-right, top-center, bottom-left, bottom-right, bottom-center
+            'login' => 'login', // Login Typed: login, magic_login, social
+            'toast' => 'top-right', // Toast: top-left, top-right, top-center, bottom-left, bottom-right, bottom-center
+            // Social login providers shown on the login page. Each entry needs
+            // a `name` (label) and `url` (OAuth authorize endpoint or route).
+            // Leave empty to disable social login.
+            'social' => [
+                // [
+                //     'name' => 'Google',
+                //     'url' => '/auth/google',
+                // ],
+                // [
+                //     'name' => 'GitHub',
+                //     'url' => '/auth/github',
+                // ],
+            ],
         ],
         'app' => [
             'layout' => 'aside', // Layouts: aside or header
@@ -53,39 +66,39 @@ return [
                 [
                     'label' => 'Profile',
                     'url' => '/users/view',
-                    'icon' => 'account_circle',
+                    'icon' => 'circle-user',
+                ],
+                [
+                    'label' => 'Settings',
+                    'url' => '/settings',
+                    'icon' => 'settings',
                 ],
                 [
                     'label' => 'Log out',
                     'url' => '/logout',
-                    'icon' => 'logout',
+                    'icon' => 'log-out',
                 ],
                 // Add more header items as needed
             ],
             'sidebar' => [
                 [
                     'label' => 'Dashboard',
-                    'icon' => 'dashboard',
+                    'icon' => 'layout-dashboard',
                     'url' => '/pages/dashboard'
                 ],
                 [
                     'label' => 'Users',
-                    'icon' => 'supervised_user_circle',
+                    'icon' => 'users',
                     'url' => '/users'
                 ],
                 [
                     'label' => 'Activities',
-                    'icon' => 'track_changes',
+                    'icon' => 'activity',
                     'url' => '/activities'
                 ],
                 [
-                    'label' => 'Settings',
-                    'icon' => 'settings',
-                    'url' => '#',
-                ],
-                [
                     'label' => 'Pages',
-                    'icon' => 'description',
+                    'icon' => 'file-text',
                     'children' => [
                         ['label' => 'Lists', 'url' => '#'],
                         ['label' => 'Categories', 'url' => '#'],
@@ -103,19 +116,19 @@ return [
                 [
                     'label' => 'Documentation',
                     'url' => '#',
-                    'icon' => 'auto_stories',
+                    'icon' => 'book-open',
                 ],
             ],
             'header' => [
                 [
                     'label' => 'Dashboard',
-                    'icon' => 'dashboard',
+                    'icon' => 'layout-dashboard',
                     'url' => '/pages/dashboard'
                 ],
                 [
                     'id' => 'acme-dropdown',
                     'label' => 'Acme Inc',
-                    'icon' => 'business',
+                    'icon' => 'building-2',
                     'children' => [
                         ['label' => 'Overview', 'url' => '/acme/overview'],
                         ['label' => 'Team', 'url' => '#'],
@@ -147,7 +160,7 @@ return [
                 ],
                 [
                     'label' => 'Playground',
-                    'icon' => 'crop_square',
+                    'icon' => 'square',
                     'children' => [
                         ['label' => 'History', 'url' => '#'],
                         ['label' => 'Starred', 'url' => '#'],
@@ -156,7 +169,7 @@ return [
                 ],
                 [
                     'label' => 'Models',
-                    'icon' => 'storage',
+                    'icon' => 'database',
                     'url' => '#'
                 ],
                 // ... more items ...
@@ -170,7 +183,7 @@ return [
                 [
                     'label' => 'Profile',
                     'url' => '/profile',
-                    'icon' => 'person',
+                    'icon' => 'user',
                 ],
             ],
             'legal' => [
@@ -182,7 +195,7 @@ return [
                 [
                     'label' => 'Privacy policy',
                     'url' => '#',
-                    'icon' => 'person',
+                    'icon' => 'user',
                 ],
             ],
         ],

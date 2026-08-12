@@ -13,12 +13,20 @@ class ActivitiesController extends AppController
     /**
      * Index method
      *
+     * Each user only sees their own activity, newest first.
+     *
      * @return \Cake\Http\Response|null|void Renders view
      */
     public function index()
     {
+        $identity = $this->request->getAttribute('identity');
+        $userId = $identity ? $identity->getIdentifier() : null;
+
         $query = $this->Activities->find()
-            ->contain(['Users']);
+            ->contain(['Users'])
+            ->orderByDesc('Activities.created')
+            ->where(['user_id' => $userId]);
+
         $activities = $this->paginate($query);
 
         $this->set(compact('activities'));

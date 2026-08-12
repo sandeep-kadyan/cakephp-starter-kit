@@ -32,7 +32,6 @@ use Cake\Routing\Router;
 
     <?= $this->Vite->assets(['js/app.js', 'css/app.css']) ?>
 
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <?= $this->element('base/seo') ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>

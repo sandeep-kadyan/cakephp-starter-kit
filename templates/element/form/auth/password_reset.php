@@ -8,23 +8,35 @@ use Cake\Core\Configure;
 $this->assign('title', 'Password reset');
 ?>
 <div class="w-full max-w-md mx-auto">
-    <?= $this->Form->create(null, ['class' => 'space-y-5']) ?>
-    <h1 class="text-2xl font-bold text-center">Log in to your account</h1>
+    <?= $this->Form->create($user ?? null, ['class' => 'space-y-5']) ?>
+    <?php if (!empty($token)): ?>
+        <?= $this->Form->hidden('token', ['value' => $token]) ?>
+    <?php endif; ?>
+    <h1 class="text-2xl font-bold text-center">Reset your password</h1>
     <fieldset class="mt-0">
-        <legend class="text-muted-foreground text-balance text-center mb-4"><?= __(sprintf('Login to your %s account', Configure::read('App.name', 'CakePHP'))) ?></legend>
-        <div class="mb-4">
-            <?= $this->Form->control('username', [
-                'placeholder' => 'username or example@abc.com',
-                'label' => ['class' => 'block text-sm font-medium text-gray-700 mb-1'],
-                'class' => 'block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none'
-            ]) ?>
-        </div>
+        <legend class="text-muted-foreground text-balance text-center mb-4">
+            <?= __(sprintf('Choose a new password for your %s account.', Configure::read('App.name', 'CakePHP'))) ?>
+        </legend>
+        <?= $this->element('form/auth/password', [
+            'name' => 'password',
+            'label' => 'New password',
+        ]) ?>
+        <?= $this->element('form/auth/password', [
+            'name' => 'confirm_password',
+            'label' => 'Confirm new password',
+        ]) ?>
     </fieldset>
     <div>
-        <?= $this->Form->button(__('Login'), [
-            'class' => 'w-full py-2 px-4 bg-black hover:bg-gray-900 text-white font-semibold rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-gray-900'
+        <?= $this->Form->button(__('Reset Password'), [
+            'class' => 'w-full py-2 px-4 bg-primary text-primary-foreground font-semibold rounded-lg shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring'
         ]) ?>
     </div>
     <?= $this->Form->end() ?>
-    <?= $this->element('form/auth/footer') ?>
+    <p class="mt-4 text-center text-sm text-muted-foreground">
+        <?= __('Remembered your password?') ?>
+        <?= $this->Html->link(__('Back to login'), [
+            'controller' => 'Users',
+            'action' => 'login',
+        ], ['class' => 'font-semibold text-foreground hover:underline']) ?>
+    </p>
 </div>

@@ -77,12 +77,13 @@ class MenuCell extends Cell
      */
     protected function getMenus(string $menu, array $options = []): array
     {
-        $menus = Configure::read('Setting.menu.' . $menu);
+        $menus = Configure::read('Setting.menu.' . $menu) ?? [];
 
         try {
-            $menus = TableRegistry::getTableLocator()->get('Menus');
-            $menus->find()->where(['menu' => $menu])->all()->toArray();
+            $table = TableRegistry::getTableLocator()->get('Menus');
+            $menus = $table->find()->where(['menu' => $menu])->all()->toArray();
         } catch (Exception $e) {
+            // Menus table missing (or not queryable): keep the configured menu data.
         }
 
         return $menus;

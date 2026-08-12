@@ -24,6 +24,9 @@ use Cake\ORM\Entity;
  * @property \Cake\I18n\DateTime $modified
  *
  * @property \App\Model\Entity\Activity[] $activities
+ * @property \App\Model\Entity\UserSetting[] $user_settings
+ * @property \App\Model\Entity\UserSession[] $user_sessions
+ * @property \App\Model\Entity\PaymentMethod[] $payment_methods
  */
 class User extends Entity
 {
@@ -50,6 +53,9 @@ class User extends Entity
         'created' => true,
         'modified' => true,
         'activities' => true,
+        'user_settings' => true,
+        'user_sessions' => true,
+        'payment_methods' => true,
     ];
 
     /**

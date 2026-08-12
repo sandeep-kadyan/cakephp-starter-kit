@@ -3,58 +3,57 @@
  * @var \App\View\AppView $this
  * @var \App\Model\Entity\AuthRequest $authRequest
  */
+$this->assign('title', $authRequest->username);
+$this->assign('pageHeader.description', __('Details for this authentication request.'));
+$this->assign('pageHeader.icon', 'mail');
+$this->start('pageHeader.actions');
+echo $this->Html->link(__('Edit Auth Request'), ['action' => 'edit', $authRequest->id], ['class' => 'inline-flex items-center px-4 py-2 rounded-md border border-border text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground']);
+echo $this->Form->postLink(__('Delete Auth Request'), ['action' => 'delete', $authRequest->id], ['confirm' => __('Are you sure you want to delete # {0}?', $authRequest->id), 'class' => 'inline-flex items-center px-4 py-2 rounded-md border border-destructive text-sm font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground']);
+echo $this->Html->link(__('List Auth Requests'), ['action' => 'index'], ['class' => 'inline-flex items-center px-4 py-2 rounded-md border border-border text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground']);
+echo $this->Html->link(__('New Auth Request'), ['action' => 'add'], ['class' => 'inline-flex items-center px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90']);
+$this->end();
 ?>
-<div class="row">
-    <aside class="column">
-        <div class="side-nav">
-            <h4 class="heading"><?= __('Actions') ?></h4>
-            <?= $this->Html->link(__('Edit Auth Request'), ['action' => 'edit', $authRequest->id], ['class' => 'side-nav-item']) ?>
-            <?= $this->Form->postLink(__('Delete Auth Request'), ['action' => 'delete', $authRequest->id], ['confirm' => __('Are you sure you want to delete # {0}?', $authRequest->id), 'class' => 'side-nav-item']) ?>
-            <?= $this->Html->link(__('List Auth Requests'), ['action' => 'index'], ['class' => 'side-nav-item']) ?>
-            <?= $this->Html->link(__('New Auth Request'), ['action' => 'add'], ['class' => 'side-nav-item']) ?>
-        </div>
-    </aside>
-    <div class="column column-80">
-        <div class="authRequests view content">
-            <h3><?= h($authRequest->username) ?></h3>
-            <table>
+<div>
+    <div class="overflow-x-auto rounded-lg border border-border bg-card">
+        <table class="min-w-full divide-y divide-border">
+            <tbody class="divide-y divide-border">
                 <tr>
-                    <th><?= __('Id') ?></th>
-                    <td><?= h($authRequest->id) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Id') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground"><?= h($authRequest->id) ?></td>
                 </tr>
                 <tr>
-                    <th><?= __('Username') ?></th>
-                    <td><?= h($authRequest->username) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Username') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground"><?= h($authRequest->username) ?></td>
                 </tr>
                 <tr>
-                    <th><?= __('Email') ?></th>
-                    <td><?= h($authRequest->email) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Email') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground"><?= h($authRequest->email) ?></td>
                 </tr>
                 <tr>
-                    <th><?= __('Phone') ?></th>
-                    <td><?= h($authRequest->phone) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Phone') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground"><?= h($authRequest->phone) ?></td>
                 </tr>
                 <tr>
-                    <th><?= __('Verification Token') ?></th>
-                    <td><?= h($authRequest->verification_token) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Verification Token') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground break-all"><?= h($authRequest->verification_token) ?></td>
                 </tr>
                 <tr>
-                    <th><?= __('Expires') ?></th>
-                    <td><?= h($authRequest->expires) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Expires') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground"><?= h($authRequest->expires) ?></td>
                 </tr>
                 <tr>
-                    <th><?= __('Verified At') ?></th>
-                    <td><?= h($authRequest->verified_at) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Verified At') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground"><?= h($authRequest->verified_at) ?></td>
                 </tr>
                 <tr>
-                    <th><?= __('Created') ?></th>
-                    <td><?= h($authRequest->created) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Created') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground"><?= h($authRequest->created) ?></td>
                 </tr>
                 <tr>
-                    <th><?= __('Modified') ?></th>
-                    <td><?= h($authRequest->modified) ?></td>
+                    <th class="w-48 px-4 py-3 text-left text-sm font-medium text-muted-foreground"><?= __('Modified') ?></th>
+                    <td class="px-4 py-3 text-sm text-foreground"><?= h($authRequest->modified) ?></td>
                 </tr>
-            </table>
-        </div>
+            </tbody>
+        </table>
     </div>
 </div>

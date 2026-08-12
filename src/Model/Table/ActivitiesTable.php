@@ -44,6 +44,10 @@ class ActivitiesTable extends Table
 
         $this->addBehavior('Timestamp');
 
+        // AjaxTable results are scoped to the logged-in user (each user sees
+        // their own activity), ordered newest-first by default.
+        $this->addBehavior('AjaxTable', ['userScoped' => true]);
+
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
         ]);

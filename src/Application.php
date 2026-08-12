@@ -161,17 +161,23 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
                 'queryParam' => 'redirect',
             ]);
 
+            // Form and cookie authenticators read a single POST field.
             $fields = [
                 PasswordIdentifier::CREDENTIAL_USERNAME => 'email',
                 PasswordIdentifier::CREDENTIAL_PASSWORD => 'password',
             ];
+            // The identifier looks the user up by username OR email.
+            $identifierFields = [
+                PasswordIdentifier::CREDENTIAL_USERNAME => ['username', 'email'],
+                PasswordIdentifier::CREDENTIAL_PASSWORD => 'password',
+            ];
             $identifier = [
                 'className' => 'Authentication.Password',
-                'fields' => $fields,
+                'fields' => $identifierFields,
                 'resolver' => [
                     'className' => 'Authentication.Orm',
                     'userModel' => 'Users',
-                    'finder' => 'active', // default: 'all'
+                    'finder' => 'all', // default: 'all'
                 ],
                 'passwordHasher' => [
                     'className' => 'Authentication.Fallback',

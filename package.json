@@ -26,6 +26,7 @@
     "alpinejs": "^3.14.9",
     "ckeditor4": "^4.22.1",
     "codemirror": "^5.65.13",
+    "lucide": "^1.31.0",
     "quill": "^2.0.3",
     "select2": "^4.1.0-rc.0",
     "simplemde": "^1.11.2"

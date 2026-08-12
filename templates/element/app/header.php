@@ -5,7 +5,7 @@
  */
 ?>
 
-<header class="px-6 py-3 flex items-center justify-between bg-white dark:bg-neutral-800">
+<header class="px-4 lg:px-6 py-3 flex items-center justify-between bg-card border-b border-border">
     <div class="flex items-center gap-5">
         <?= $this->element('base/header_logo') ?>
         <?= $this->element('menu/header') ?>
@@ -17,11 +17,12 @@
         <?= $this->element('menu/profile') ?>
     </div>
 </header>
-<div class="p-6">
+<div class="px-4 lg:px-6 py-3 bg-background border-b border-border">
     <?= $this->element('base/breadcrumbs') ?>
 </div>
-<div class="flex">
-    <main class="flex-1 px-6 pb-6 overflow-y-auto">
+<div class="flex bg-background">
+    <main class="flex-1 px-4 lg:px-6 py-6 overflow-y-auto">
+        <?= $this->element('base/page_header') ?>
         <?= $this->fetch('content') ?>
     </main>
 </div>

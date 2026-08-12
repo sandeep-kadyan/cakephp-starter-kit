@@ -19,14 +19,13 @@ use Cake\I18n\I18n;
 
     <?= $this->Vite->assets(['js/app.js', 'css/app.css']) ?>
 
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <?= $this->element('base/seo') ?>
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
 
 </head>
 
-<body class="bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100 min-h-screen flex flex-col transition-colors duration-300">
+<body class="bg-background text-foreground min-h-screen flex flex-col transition-colors duration-300">
     <!-- Header -->
     <?= $this->element('base/header') ?>
 

@@ -73,8 +73,13 @@ class AjaxTableListener implements EventListenerInterface
         // Get the model instance for the request
         $model = $this->getModel($request);
 
+        // Include the authenticated user so user-scoped tables (e.g. activities)
+        // only return that user's rows. Included in the cache key automatically.
+        $data = $request->getData();
+        $data['userId'] = $request->getAttribute('identity')?->getIdentifier();
+
         // Use the AjaxTable behavior to process the request data
-        $response = $model->behaviors()->get('AjaxTable')->processAjaxTable($request->getData());
+        $response = $model->behaviors()->get('AjaxTable')->processAjaxTable($data);
 
         return $response;
     }

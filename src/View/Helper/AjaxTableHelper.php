@@ -74,7 +74,7 @@ class AjaxTableHelper extends Helper
      * Render a AjaxTable with Alpine.js configuration and markup.
      *
      * @param string $controller The current request controller.
-     * @param string $plugin The current request plugin.
+     * @param string|null $plugin The current request plugin.
      * @param array<string, mixed> $options Additional options for customizing the AjaxTable output.
      * @return string The generated HTML for the AjaxTable.
      */
@@ -86,6 +86,16 @@ class AjaxTableHelper extends Helper
 
         // Columns configuration for the AjaxTable
         $columns = $options['columns'];
+
+        // Inherit the authenticated user's preferred default page size (if set)
+        $identity = $this->getView()->getRequest()->getAttribute('identity');
+        if ($identity) {
+            $userSettingsTable = \Cake\ORM\TableRegistry::getTableLocator()->get('UserSettings');
+            $preferredSize = $userSettingsTable->getValue($identity->getIdentifier(), 'pagination.default_page_size');
+            if ($preferredSize !== null) {
+                $options['pageSize'] = (int)$preferredSize;
+            }
+        }
 
         // Build the API URL for fetching data (default to current controller/action)
         $apiUrl = $options['apiUrl'] ?? $this->Url->build([
@@ -145,7 +155,7 @@ class AjaxTableHelper extends Helper
 
         $hasExtraColumns = count($extraColumns) > 0;
         // Responsive wrapper for Alpine.js AjaxTable
-        $html = '<div x-data="ajaxTable()" data-api="' . $apiUrl . '" data-action="' . $actionUrl . '" data-columns="' . $columnsJson . '" data-table-id="' . $tableId . '" data-main-columns="' . $mainColumnsJson . '" data-extra-columns="' . $extraColumnsJson . '" data-has-extra-columns="' . ($hasExtraColumns ? '1' : '0') . '"';
+        $html = '<div x-data="ajaxTable()" data-api="' . $apiUrl . '" data-action="' . $actionUrl . '" data-columns="' . $columnsJson . '" data-table-id="' . $tableId . '" data-main-columns="' . $mainColumnsJson . '" data-extra-columns="' . $extraColumnsJson . '" data-has-extra-columns="' . ($hasExtraColumns ? '1' : '0') . '" data-page-size="' . (int)$options['pageSize'] . '"';
 
         // Add default sort field/direction if provided
         if (!empty($options['defaultSortField'])) {
@@ -160,8 +170,8 @@ class AjaxTableHelper extends Helper
         // Search box
         if ($options['searchable']) {
             $html .= '<div class="max-w-md w-full">';
-            $html .= '<input type="text" id="searchable" x-model="searchTerm" @input.debounce.500ms="loadData()" ';
-            $html .= 'placeholder="Search..." class="px-3 py-2 h-9 w-full rounded-lg dark:bg-transparent dark:text-white border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-1 focus:ring-black dark:focus:ring-white">';
+            $html .= '<input type="text" id="searchable" x-model="searchTerm" @input.debounce.500ms="onSearchInput()" ';
+            $html .= 'placeholder="Search..." class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring">';
             $html .= '</div>';
         }
         // Button group: Export, Clear State, Select All, Delete
@@ -170,30 +180,104 @@ class AjaxTableHelper extends Helper
         // Select All/Visible/Delete buttons (show only if header checkbox is checked)
         // $html .= '<template x-if="allVisibleChecked" x-cloak>';
         // $html .= '<div class="flex space-x-2 items-center">';
-        // $html .= '<button @click="deleteAllRecords()" class="px-2 py-1 text-red-700 rounded-md hover:bg-red-700 hover:text-neutral-100 text-sm flex align-middle items-center gap-1" title="Delete All Records"><span class="material-icons">delete_outline</span></button>';
+        // $html .= '<button @click="deleteAllRecords()" class="px-2 py-1 text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground text-sm flex items-center gap-1" title="Delete All Records"><i data-lucide="trash-2"></i></button>';
         // $html .= '</div>';
         // $html .= '</template>';
-        $html .= '<button x-show="selectedRows.length > 0" @click="deleteAllSelectedRecords()" class="px-2 py-1 text-red-700 rounded-md hover:bg-red-700 hover:text-neutral-100 text-sm flex align-middle items-center gap-1" title="Delete Selected Records"><span class="material-icons">delete_sweep</span></button>';
+        $html .= '<button x-show="selectedRows.length > 0" @click="deleteAllSelectedRecords()" class="w-9 h-9 inline-flex items-center justify-center bg-transparent text-destructive rounded-md hover:bg-destructive hover:text-destructive-foreground text-sm" title="Delete Selected"><i data-lucide="trash-2"></i></button>';
         if ($options['exportable']) {
-            $html .= '<button @click="exportData(\'csv\')" class="px-2 py-1 bg-transparent text-black dark:text-white dark:hover:bg-white/20 rounded-md hover:bg-neutral-200 text-sm"><span class="material-icons flex items-center align-middle">file_download</span></button>';
+            $html .= '<button @click="exportData(\'csv\')" class="w-9 h-9 inline-flex items-center justify-center bg-transparent text-foreground rounded-md hover:bg-accent hover:text-accent-foreground text-sm" title="Export CSV"><i data-lucide="download"></i></button>';
         }
-        $html .= '<button @click="clearState()" class="px-2 py-1 bg-transparent text-black dark:text-white dark:hover:bg-white/20 rounded-md hover:bg-neutral-200 text-sm"><span class="material-icons flex items-center align-middle">restore_page</span></button>';
-        $html .= '<button @click="clearState()" class="px-2 py-1 bg-transparent text-black dark:text-white dark:hover:bg-white/20 rounded-md hover:bg-neutral-200 text-sm"><span class="material-icons flex items-center align-middle">filter_list</span></button>';
-        $html .= '<button @click="clearState()" class="px-2 py-1 bg-transparent text-black dark:text-white dark:hover:bg-white/20 rounded-md hover:bg-neutral-200 text-sm"><span class="material-icons flex items-center align-middle">settings</span></button>';
-        $html .= '<a href="' . $actionUrl . '/add" class="px-2 py-1 bg-neutral-100 text-black rounded-md hover:bg-neutral-200 dark:text-white dark:bg-white/20 text-sm flex align-middle items-center gap-1"><span class="material-icons">add</span>New</a>';
+        // History dropdown
+        $html .= '<div class="relative" @click.outside="historyOpen = false">';
+        $html .= '<button @click="historyOpen = !historyOpen" class="w-9 h-9 inline-flex items-center justify-center bg-transparent text-foreground rounded-md hover:bg-accent hover:text-accent-foreground text-sm" title="History"><i data-lucide="history"></i></button>';
+        $html .= '<div x-show="historyOpen" x-cloak x-transition class="absolute right-0 z-50 mt-2 w-80 ajaxtable-panel rounded-md border border-border bg-popover text-popover-foreground shadow-lg focus:outline-none">';
+        $html .= '<div class="p-2 border-b border-border flex items-center justify-between">';
+        $html .= '<span class="text-sm font-medium">History</span>';
+        $html .= '<button @click="clearHistory()" class="text-xs text-muted-foreground hover:text-foreground">Clear</button>';
+        $html .= '</div>';
+        $html .= '<template x-if="historyEntries.length === 0">';
+        $html .= '<div class="p-3 text-sm text-muted-foreground">No actions recorded yet.</div>';
+        $html .= '</template>';
+        $html .= '<div x-show="historyEntries.length > 0" class="p-1">';
+        $html .= '<template x-for="(entry, i) in historyEntries" :key="i">';
+        $html .= '<button @click="restoreHistory(entry)" class="w-full text-left px-2 py-1.5 rounded-md text-sm hover:bg-accent hover:text-accent-foreground flex items-center justify-between gap-2">';
+        $html .= '<span x-text="entry.label"></span>';
+        $html .= '<span class="text-xs text-muted-foreground shrink-0" x-text="entry.timestamp"></span>';
+        $html .= '</button>';
+        $html .= '</template>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
+        // Filter dropdown
+        $html .= '<div class="relative" @click.outside="filterOpen = false">';
+        $html .= '<button @click="toggleFilterPanel()" class="w-9 h-9 inline-flex items-center justify-center bg-transparent text-foreground rounded-md hover:bg-accent hover:text-accent-foreground text-sm relative" title="Filter"><i data-lucide="filter"></i>';
+        $html .= '<span x-show="activeFilterCount() > 0" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-medium flex items-center justify-center" x-text="activeFilterCount()"></span>';
+        $html .= '</button>';
+        $html .= '<div x-show="filterOpen" x-cloak x-transition class="absolute right-0 z-50 mt-2 w-80 ajaxtable-panel rounded-md border border-border bg-popover text-popover-foreground shadow-lg focus:outline-none">';
+        $html .= '<div class="p-2 border-b border-border"><span class="text-sm font-medium">Filters</span></div>';
+        $html .= '<template x-if="filterableColumns.length === 0">';
+        $html .= '<div class="p-3 text-sm text-muted-foreground">No filterable columns.</div>';
+        $html .= '</template>';
+        $html .= '<div x-show="filterableColumns.length > 0" class="p-3 space-y-3">';
+        $html .= '<template x-for="col in filterableColumns" :key="col.field">';
+        $html .= '<div>';
+        $html .= '<label class="block text-xs font-medium text-muted-foreground mb-1" x-text="col.title"></label>';
+        $html .= '<input type="text" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring" placeholder="Filter by..." :value="filterValue(col.field)" @input="setFilterValue(col.field, $event.target.value)">';
+        $html .= '</div>';
+        $html .= '</template>';
+        $html .= '<div class="flex justify-end gap-2 pt-1">';
+        $html .= '<button @click="clearFilters()" class="px-3 py-1.5 rounded-md text-sm border border-border hover:bg-accent">Clear</button>';
+        $html .= '<button @click="applyFilters()" class="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90">Apply</button>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
+        // Settings dropdown
+        $html .= '<div class="relative" @click.outside="settingsOpen = false">';
+        $html .= '<button @click="settingsOpen = !settingsOpen" class="w-9 h-9 inline-flex items-center justify-center bg-transparent text-foreground rounded-md hover:bg-accent hover:text-accent-foreground text-sm" title="Settings"><i data-lucide="settings"></i></button>';
+        $html .= '<div x-show="settingsOpen" x-cloak x-transition class="absolute right-0 z-50 mt-2 w-80 ajaxtable-panel rounded-md border border-border bg-popover text-popover-foreground shadow-lg focus:outline-none">';
+        $html .= '<div class="p-2 border-b border-border"><span class="text-sm font-medium">Settings</span></div>';
+        $html .= '<div class="p-3 space-y-3">';
+        $html .= '<div>';
+        $html .= '<span class="block text-xs font-medium text-muted-foreground mb-1">Visible Columns</span>';
+        $html .= '<div class="space-y-1">';
+        $html .= '<template x-for="col in columns.filter(c => c.field !== \'actions\')" :key="col.field">';
+        $html .= '<label class="flex items-center gap-2 text-sm cursor-pointer">';
+        $html .= '<input type="checkbox" class="w-4 h-4 border border-input rounded accent-primary" :checked="visibleColumns.includes(col.field)" @change="toggleColumn(col.field)">';
+        $html .= '<span x-text="col.title"></span>';
+        $html .= '</label>';
+        $html .= '</template>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '<div>';
+        $html .= '<label for="settingsPageSize" class="block text-xs font-medium text-muted-foreground mb-1">Page Size</label>';
+        $html .= '<select id="settingsPageSize" x-model="pageSize" @change="onPageSizeChange()" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring">';
+        foreach ($options['pageSizeOptions'] as $size) {
+            $html .= '<option value="' . $size . '">' . $size . '</option>';
+        }
+        $html .= '</select>';
+        $html .= '</div>';
+        $html .= '<div class="flex justify-end gap-2 pt-1">';
+        $html .= '<button @click="resetSettings()" class="px-3 py-1.5 rounded-md text-sm border border-border hover:bg-accent">Reset</button>';
+        $html .= '<button @click="applyColumnVisibility()" class="px-3 py-1.5 rounded-md text-sm bg-primary text-primary-foreground hover:bg-primary/90">Apply</button>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '</div>';
+        $html .= '<a href="' . $actionUrl . '/add" class="w-9 h-9 inline-flex items-center justify-center bg-transparent text-foreground rounded-md hover:bg-accent hover:text-accent-foreground text-sm" title="Add New"><i data-lucide="plus"></i></a>';
         $html .= '</div>';
         $html .= '</div>';
 
         // Table markup and Alpine.js hooks
-        $html .= '<div class="block w-full overflow-auto shadow ring-1 ring-black dark:ring-neutral-700 ring-opacity-5 md:rounded-lg relative" x-cloak>';
-        $html .= '<table id="' . $tableId . '" class="min-w-full divide-y divide-neutral-200 dark:divide-neutral-700 ">';
-        $html .= '<thead class="bg-neutral-50 text-neutral-500 dark:bg-white/20 dark:text-white dark:hover:text-white">';
+        $html .= '<div class="block w-full overflow-auto shadow-md ring-1 ring-border md:rounded-lg relative" x-cloak>';
+        $html .= '<table id="' . $tableId . '" class="min-w-full divide-y divide-border ">';
+        $html .= '<thead class="bg-muted text-muted-foreground">';
         $html .= '<tr>';
         // Checkbox header
-        $html .= '<th class="px-4 py-3 w-[50px]">'
+        $html .= '<th data-field="__select__" class="px-4 py-3 w-[50px]">'
             . '<label class="relative inline-flex items-center cursor-pointer">'
             . '<input name="checkbox" id="checkHead" type="checkbox" @change="toggleSelectAll($event)" x-model="allVisibleChecked"'
-            . ' class="appearance-none w-4 h-4 border border-neutral-300 rounded checked:bg-black dark:checked:bg-white checked:border-black dark:checked:border-white focus:outline-none transition-all duration-150 align-middle" />'
+            . ' class="appearance-none w-4 h-4 border border-input rounded checked:bg-primary checked:border-primary focus:outline-none transition-all duration-150" />'
             . '<svg x-show="allVisibleChecked" class="absolute w-3 h-3 pointer-events-none left-0 top-0 m-0.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">'
             . '<path d="M5 13l4 4L19 7" :stroke="document.documentElement.classList.contains(\'dark\') ? \'black\' : \'white\'" />'
             . '</svg>'
@@ -201,7 +285,7 @@ class AjaxTableHelper extends Helper
             . '</th>';
         // Expand/collapse header (only if extra columns)
         if ($hasExtraColumns) {
-            $html .= '<th class="px-2 py-1 text-center w-[50px]"></th>';
+            $html .= '<th data-field="__expand__" class="px-2 py-1 text-center w-[50px]"></th>';
         }
         // Main columns only
         foreach ($mainColumns as $key => $column) {
@@ -211,9 +295,9 @@ class AjaxTableHelper extends Helper
             if ($field === 'actions') {
                 continue;
             }
-            $html .= '<th class="px-6 py-1 text-left text-xs font-medium uppercase tracking-wider">';
+            $html .= '<th data-field="' . addslashes($field) . '" class="px-6 py-1 text-left text-xs font-medium uppercase tracking-wider">';
             if ($sortable) {
-                $html .= '<button @click="sort(\'' . addslashes($field) . '\')" class="flex items-center space-x-1 hover:text-neutral-700 dark:hover:text-neutral-100 focus:outline-none">';
+                $html .= '<button @click="sort(\'' . addslashes($field) . '\')" class="flex items-center space-x-1 hover:text-foreground focus:outline-none">';
                 $html .= '<span>' . h($title) . '</span>';
                 $html .= '<span x-show="sortField === \'' . addslashes($field) . '\'" x-text="sortDirection === \'asc\' ? \'↑\' : \'↓\'" class="ml-1"></span>';
                 $html .= '</button>';
@@ -224,25 +308,24 @@ class AjaxTableHelper extends Helper
         }
         // Actions column header (always last, always visible)
         if ($options['showActions']) {
-            $html .= '<th class="px-6 py-1 text-right text-xs font-medium tracking-wider">Actions</th>';
+            $html .= '<th data-field="actions" class="px-6 py-1 text-right text-xs font-medium tracking-wider">Actions</th>';
         }
         $html .= '</tr>';
         $html .= '</thead>';
         // Empty tbody for JS to fill, with support for checkboxes and expandable rows
-        $html .= '<tbody class="bg-white text-neutral-500 dark:bg-transparent dark:text-white divide-y divide-neutral-200 dark:divide-neutral-700" x-ref="tbody" style="min-height:100px;">';
+        $html .= '<tbody class="bg-card text-muted-foreground divide-y divide-border min-h-24" x-ref="tbody">';
         // Alpine.js will render rows and nested rows here
         $html .= '</tbody>';
         $html .= '</table>';
         $html .= '</div>';
 
-        // Pagination and loading indicator remain as before
-        $html .= '<div class="mt-4 flex items-center justify-between">';
-        $html .= '<div class="text-sm text-neutral-800 dark:text-white">';
-        $html .= '<div class="flex items-center justify-start gap-1">';
-        // Page size selector
-        $html .= '<div class="flex items-center lg:space-x-2">';
-        $html .= '<label for="pageSize" class="text-sm text-neutral-800 dark:text-white hidden lg:flex">Page Size:</label>';
-        $html .= '<select id="pageSize" x-model="pageSize" @change="onPageSizeChange()" class="px-2 py-1 h-8 border border-neutral-200 dark:border-neutral-100 dark:bg-white/20 rounded-md text-sm">';
+        // Pagination and loading indicator
+        $html .= '<div class="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">';
+        $html .= '<div class="text-sm text-foreground flex flex-wrap items-center gap-3">';
+        // Page size selector (styling mirrors config/form.php select template)
+        $html .= '<div class="flex items-center gap-2">';
+        $html .= '<label for="pageSize" class="text-sm text-foreground hidden lg:flex">Page Size:</label>';
+        $html .= '<select id="pageSize" x-model="pageSize" @change="onPageSizeChange()" class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring">';
         foreach ($options['pageSizeOptions'] as $size) {
             $html .= '<option value="' . $size . '">' . $size . '</option>';
         }
@@ -250,30 +333,29 @@ class AjaxTableHelper extends Helper
         $html .= '</div>';
         $html .= '<span class="hidden lg:block">Showing <span x-text="startRecord"></span> to <span x-text="endRecord"></span> of <span x-text="totalRecords"></span> results</span>';
         $html .= '</div>';
-        $html .= '</div>';
-        $html .= '<div class="flex align-middle items-center space-x-2 dark:text-white">';
-        $html .= '<button @click="firstPage()" :disabled="currentPage === 1" class="px-3 py-1 border border-neutral-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 dark:bg-white/20 flex items-center justify-center">'
+        $html .= '<div class="flex items-center gap-2 text-foreground">';
+        $html .= '<button @click="firstPage()" :disabled="currentPage === 1" class="h-9 px-3 inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">'
             . '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7M19 19l-7-7 7-7"/></svg>'
-            . '<span class="hidden lg:inline ml-1">First</span>'
+            . '<span class="hidden lg:inline">First</span>'
         . '</button>';
-        $html .= '<button @click="previousPage()" :disabled="currentPage === 1" class="px-3 py-1 border border-neutral-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 dark:bg-white/20 flex items-center justify-center">'
+        $html .= '<button @click="previousPage()" :disabled="currentPage === 1" class="h-9 px-3 inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">'
             . '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>'
-            . '<span class="hidden lg:inline ml-1">Previous</span>'
+            . '<span class="hidden lg:inline">Previous</span>'
         . '</button>';
-        $html .= '<span class="text-sm text-neutral-800 dark:text-neutral-100"><span x-text="currentPage"></span> of <span x-text="totalPages"></span></span>';
-        $html .= '<button @click="nextPage()" :disabled="currentPage === totalPages" class="px-3 py-1 border border-neutral-200 text-neutral-800 dark:text-neutral-100 dark:border-neutral-800 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 dark:bg-white/20 flex items-center justify-center">'
-            . '<span class="hidden lg:inline ml-1">Next</span>'
+        $html .= '<span class="h-9 px-3 inline-flex items-center justify-center rounded-md border border-border bg-muted text-sm" title="Current page"><span x-text="currentPage"></span>&nbsp;of&nbsp;<span x-text="totalPages"></span></span>';
+        $html .= '<button @click="nextPage()" :disabled="currentPage === totalPages" class="h-9 px-3 inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">'
+            . '<span class="hidden lg:inline">Next</span>'
             . '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>'
         . '</button>';
-        $html .= '<button @click="lastPage()" :disabled="currentPage === totalPages" class="px-3 py-1 border border-neutral-200 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 dark:bg-white/20 flex items-center justify-center">'
+        $html .= '<button @click="lastPage()" :disabled="currentPage === totalPages" class="h-9 px-3 inline-flex items-center justify-center gap-1 rounded-md border border-input bg-background text-sm hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed">'
             . '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5l7 7-7 7M13 5l7 7-7 7"/></svg>'
-            . '<span class="hidden lg:inline ml-1">Last</span>'
+            . '<span class="hidden lg:inline">Last</span>'
         . '</button>';
         $html .= '</div>';
         $html .= '</div>';
         $html .= '<div x-show="loading" class="flex items-center justify-center">';
-        $html .= '<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-neutral-800 dark:border-white"></div>';
-        $html .= '<span class="ml-2 text-neutral-500 dark:text-white">Loading...</span>';
+        $html .= '<div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>';
+        $html .= '<span class="ml-2 text-muted-foreground">Loading...</span>';
         $html .= '</div>';
 
         return $html;
@@ -295,7 +377,7 @@ class AjaxTableHelper extends Helper
 
         $html = '<div>';
         if ($data) {
-            $html .= '<div class="relative dark:text-white">';
+            $html .= '<div class="relative text-foreground">';
             foreach ($columns as $field => $column) {
                 $label = __(Inflector::humanize($field));
                 $value = $data->$field;
@@ -309,7 +391,7 @@ class AjaxTableHelper extends Helper
                         $html .= '<span class="font-mono select-all">' . $uuid . '</span>';
                         $html .= '<button type="button" class="ml-2 copy-uuid-btn" title="Copy UUID" @click="navigator.clipboard.writeText(\'' . $uuid . '\'); copied = true; setTimeout(() => copied = false, 1500)" >';
                         // Copy icon
-                        $html .= '<svg x-show="!copied" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block text-neutral-500 hover:text-black dark:hover:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><rect x="3" y="3" width="13" height="13" rx="2" stroke-width="2"/></svg>';
+                        $html .= '<svg x-show="!copied" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block text-muted-foreground hover:text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"/><rect x="3" y="3" width="13" height="13" rx="2" stroke-width="2"/></svg>';
                         // Check icon
                         $html .= '<svg x-show="copied" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 inline-block text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>';
                         $html .= '</button>';
@@ -381,7 +463,7 @@ class AjaxTableHelper extends Helper
 
                             $html .= '<div class="grid grid-cols-12 gap-2 items-center py-2">';
                             $html .= '<div class="col-span-3 text-left">' . $label . '</div>';
-                            $html .= '<div class="col-span-9">' . $this->Html->link($displayValue, $relatedUrl, ['class' => 'text-neutral-800 hover:text-neutral-900 dark:text-neutral-100 dark:hover:text-neutral-200', 'escape' => false]) . '</div>';
+                            $html .= '<div class="col-span-9">' . $this->Html->link($displayValue, $relatedUrl, ['class' => 'text-foreground hover:text-primary', 'escape' => false]) . '</div>';
                             $html .= '</div>';
                         } else {
                             $html .= '<div class="grid grid-cols-12 gap-2 items-center py-2">';
@@ -398,7 +480,7 @@ class AjaxTableHelper extends Helper
                     $associated = Inflector::underscore($association);
                     if (!empty($data->$associated)) {
                         $html .= '<div class="related">';
-                        $html .= '<h4 class="py-4 font-bold dark:text-white">' . __('Related ' . $association) . '</h4>';
+                        $html .= '<h4 class="py-4 font-bold text-foreground">' . __('Related ' . $association) . '</h4>';
                         $html .= $this->getView()->cell('AjaxTable::index', [
                             'controller' => $association,
                             'options' => [
@@ -410,7 +492,7 @@ class AjaxTableHelper extends Helper
                 }
             }
         } else {
-            $html .= '<div class="flex flex-1 align-middle justify-center p-6">No data available</div>';
+            $html .= '<div class="flex flex-1 items-center justify-center p-6">No data available</div>';
         }
         $html .= '</div>';
 

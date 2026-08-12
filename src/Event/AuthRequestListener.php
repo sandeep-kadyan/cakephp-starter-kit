@@ -36,14 +36,19 @@ class AuthRequestListener implements EventListenerInterface
     {
         // Only handle AuthRequest entities and only on creation
         if ($entity instanceof AuthRequest && $entity->isNew()) {
+            $template = $options['email_template'] ?? 'magic_link';
+            $subject = $template === 'password_reset'
+                ? 'Reset Your Password'
+                : 'Your Magic Login Link';
+
             $mailer = new Mailer();
             $mailer
                 ->setTo($entity->email)
-                ->setSubject('Your Magic Login Link')
+                ->setSubject($subject)
                 ->setEmailFormat('both')
                 ->setViewVars(['authRequest' => $entity])
                 ->viewBuilder()
-                    ->setTemplate('magic_link');
+                    ->setTemplate($template);
 
             $mailer->deliver();
         }

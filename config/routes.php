@@ -67,7 +67,11 @@ return function (RouteBuilder $routes): void {
 
         // Authentication routes
         $builder->connect('/login', ['controller' => 'Users', 'action' => 'login']);
+        $builder->connect('/register', ['controller' => 'Users', 'action' => 'register']);
+        $builder->connect('/forgot-password', ['controller' => 'Users', 'action' => 'forgotPassword']);
+        $builder->connect('/reset-password', ['controller' => 'Users', 'action' => 'resetPassword']);
         $builder->connect('/verify', ['controller' => 'Users', 'action' => 'verify']);
+        $builder->connect('/verify-otp', ['controller' => 'Users', 'action' => 'verifyOtp']);
         $builder->connect('/logout', ['controller' => 'Users', 'action' => 'logout']);
         $builder->connect('/profile', ['controller' => 'Users', 'action' => 'profile']);
 

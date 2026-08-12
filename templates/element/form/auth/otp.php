@@ -5,26 +5,35 @@ use Cake\Core\Configure;
 /**
  * @var \App\View\AppView $this
  */
-$this->assign('title', 'Otp verification');
+$this->assign('title', 'Two-factor authentication');
 ?>
 <div class="w-full max-w-md mx-auto">
     <?= $this->Form->create(null, ['class' => 'space-y-5']) ?>
-    <h1 class="text-2xl font-bold text-center">Log in to your account</h1>
+    <h1 class="text-2xl font-bold text-center">Two-factor authentication</h1>
     <fieldset class="mt-0">
-        <legend class="text-muted-foreground text-balance text-center mb-4"><?= __(sprintf('Login to your %s account', Configure::read('App.name', 'CakePHP'))) ?></legend>
-        <div class="mb-4">
-            <?= $this->Form->control('username', [
-                'placeholder' => 'username or example@abc.com',
-                'label' => ['class' => 'block text-sm font-medium text-gray-700 mb-1'],
-                'class' => 'block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none'
-            ]) ?>
-        </div>
+        <legend class="text-muted-foreground text-balance text-center mb-5">
+            <?= __('Enter the 6-digit code from your authenticator app to complete login.') ?>
+        </legend>
+        <?= $this->Form->control('code', [
+            'placeholder' => '000000',
+            'label' => ['text' => 'Verification code', 'class' => 'block text-sm font-medium text-foreground mb-1'],
+            'maxlength' => 6,
+            'autocomplete' => 'one-time-code',
+            'inputmode' => 'numeric',
+            'class' => 'block w-full px-4 py-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:outline-none tracking-widest text-center text-lg'
+        ]) ?>
     </fieldset>
     <div>
-        <?= $this->Form->button(__('Login'), [
-            'class' => 'w-full py-2 px-4 bg-black hover:bg-gray-900 text-white font-semibold rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-gray-900'
+        <?= $this->Form->button(__('Verify & Login'), [
+            'class' => 'w-full py-2 px-4 bg-primary text-primary-foreground font-semibold rounded-lg shadow hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring'
         ]) ?>
     </div>
     <?= $this->Form->end() ?>
+    <p class="mt-4 text-center text-sm text-muted-foreground">
+        <?= $this->Html->link(__('Back to login'), [
+            'controller' => 'Users',
+            'action' => 'login',
+        ], ['class' => 'font-semibold text-foreground hover:underline']) ?>
+    </p>
     <?= $this->element('form/auth/footer') ?>
 </div>

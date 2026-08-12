@@ -37,6 +37,21 @@ function ajaxTable() {
         mainColumns: [],
         extraColumns: [],
         hasExtraColumns: false,
+        
+        // Filter state
+        filters: {},
+        filterDraft: {},
+        filterOpen: false,
+        filterableColumns: [],
+        
+        // Settings state
+        settingsOpen: false,
+        visibleColumns: [],
+        
+        // History state
+        historyOpen: false,
+        historyEntries: [],
+        lastHistoryKey: '',
 
         // Initialize the component
         init() {
@@ -81,6 +96,28 @@ function ajaxTable() {
             this.extraColumns = JSON.parse(wrapper.getAttribute('data-extra-columns') || '[]');
             this.hasExtraColumns = wrapper.getAttribute('data-has-extra-columns') === '1';
 
+            // Initialize visible columns (main + extra, excluding actions)
+            this.visibleColumns = [...this.mainColumns, ...this.extraColumns].filter(f => f !== 'actions');
+            // Initialize filterable columns (skip FK/belongsTo columns and actions)
+            this.filterableColumns = this.columns.filter(c => c.field !== 'actions' && c.type !== 'belongsTo');
+            // Restore filters and column visibility from sessionStorage
+            if (state.filters && typeof state.filters === 'object') {
+                this.filters = state.filters;
+            }
+            if (Array.isArray(state.visibleColumns) && state.visibleColumns.length) {
+                this.visibleColumns = state.visibleColumns;
+            }
+
+            // Reflect persisted column visibility in the server-rendered header
+            const thead = this.$root.querySelector('thead');
+            if (thead) {
+                thead.querySelectorAll('th[data-field]').forEach((th) => {
+                    const field = th.getAttribute('data-field');
+                    if (field === '__select__' || field === '__expand__' || field === 'actions') return;
+                    th.classList.toggle('hidden', !this.visibleColumns.includes(field));
+                });
+            }
+
             // Bind expand/collapse event delegation ONCE
             const tbody = this.$root.querySelector('tbody');
             if (tbody) {
@@ -123,7 +160,8 @@ function ajaxTable() {
                     sort: this.sortField,
                     direction: this.sortDirection,
                     page: this.currentPage,
-                    pageSize: this.pageSize
+                    pageSize: this.pageSize,
+                    filters: this.filters
                 };
                 const response = await fetch(`${this.apiUrl}`, {
                     method: 'POST',
@@ -162,12 +200,11 @@ function ajaxTable() {
             tbody.innerHTML = '';
             //tbody.style.minHeight = '100px';
             if (this.displayedData.length === 0) {
-                // Count columns: checkbox + (expand if any) + mainColumns + actions
-                let colCount = 1 + (this.hasExtraColumns ? 1 : 0) + this.mainColumns.length + (this.options.showActions !== false ? 1 : 0);
+                // Count columns: checkbox + (expand if any) + visible main columns + actions
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = colCount;
-                td.className = 'text-center text-sm py-3 text-neutral-800 dark:text-neutral-100';
+                td.colSpan = this.mainRowCellCount();
+                td.className = 'text-center text-sm py-3 text-muted-foreground';
                 td.textContent = 'No data available';
                 tr.appendChild(td);
                 tbody.appendChild(tr);
@@ -175,7 +212,7 @@ function ajaxTable() {
             }
             this.displayedData.forEach((item, rowIdx) => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-neutral-50 dark:hover:bg-white/10 cursor-pointer';
+                tr.className = 'hover:bg-accent/50 cursor-pointer';
                 // Add row click handler to open the view page, but ignore clicks on checkboxes or actions
                 tr.addEventListener('click', (e) => {
                     // Ignore clicks on checkboxes or action buttons/links
@@ -203,7 +240,7 @@ function ajaxTable() {
                 checkbox.autocomplete = true;
                 checkbox.value = item.id;
                 checkbox.checked = this.selectedRows.includes(item.id);
-                checkbox.className = 'appearance-none w-4 h-4 border border-neutral-300 rounded checked:bg-black dark:checked:bg-white checked:border-black dark:checked:border-white focus:outline-none transition-all duration-150 align-middle';
+                checkbox.className = 'appearance-none w-4 h-4 border border-border rounded bg-background checked:bg-primary checked:border-primary focus:outline-none transition-all duration-150 align-middle';
                 checkbox.addEventListener('change', () => this.toggleRowSelect(item.id));
                 label.appendChild(checkbox);
                 // SVG checkmark
@@ -237,16 +274,17 @@ function ajaxTable() {
                     tdExpand.className = 'px-2 py-1 text-center';
                     tdExpand.setAttribute('data-field', '__expand__');
                     expandKey = 'row_' + item.id;
-                    tdExpand.innerHTML = `<button type="button" class="material-icons rounded-md align-middle text-xl cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10 dark:focus:bg-white/10 dark:active:bg-white/10 focus:bg-neutral-100 active:bg-neutral-100 p-2 hover:text-neutral-700 dark:hover:text-white" aria-label="Expand" data-expand-key="${expandKey}">${this.expandedRows[expandKey] ? 'expand_more' : 'chevron_right'}</button>`;
+                    tdExpand.innerHTML = `<button type="button" class="rounded-md align-middle text-xl cursor-pointer hover:bg-accent focus:bg-accent active:bg-accent p-2 text-muted-foreground hover:text-foreground" aria-label="Expand" data-expand-key="${expandKey}"><i data-lucide="${this.expandedRows[expandKey] ? 'chevron-down' : 'chevron-right'}"></i></button>`;
                     tr.appendChild(tdExpand);
                 }
-                // Main columns only (exclude extra columns)
+                // Main columns only (exclude extra columns and hidden columns)
                 for (const field of this.mainColumns) {
                     if (field === 'actions') continue;
                     if (this.extraColumns.includes(field)) continue; // skip extra columns in main row
+                    if (!this.visibleColumns.includes(field)) continue; // skip hidden columns
                     const col = this.columns.find(c => c.field === field);
                     const td = document.createElement('td');
-                    td.className = 'px-6 py-1 whitespace-nowrap text-sm text-neutral-800 dark:text-neutral-100';
+                    td.className = 'px-6 py-1 whitespace-nowrap text-sm text-foreground';
                     td.setAttribute('data-field', field);
                     let value = '';
                     if (col && col.render && typeof window[col.render] === 'function') {
@@ -262,56 +300,63 @@ function ajaxTable() {
                     }
                     tr.appendChild(td);
                 }
-                // Actions column (always last, always visible)
-                if (this.options.showActions !== false) {
-                    const td = document.createElement('td');
-                    td.className = 'px-6 py-1 whitespace-nowrap text-sm font-medium table-cell text-right';
-                    td.setAttribute('data-field', 'actions');
-                    // Dropdown logic: unique id for each row
-                    const dropdownId = `dropdown-actions-${item.id}`;
-                    td.innerHTML = `
-                        <div class="relative inline-block text-left">
-                            <button type="button" class="material-icons rounded-md align-middle text-xl cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/10 focus:bg-neutral-100 dark:focus:bg-white/10 active:bg-neutral-100 dark:active:bg-white/10 p-2 hover:text-neutral-700 dark:hover:text-white" onclick="toggleActionsDropdown('${dropdownId}')">more_vert</button>
-                            <div id="${dropdownId}" class="hidden origin-top-right absolute z-20 right-10 top-0 w-36 rounded-md shadow-lg bg-white dark:bg-neutral-800 dark:text-white ring-1 ring-black dark:ring-neutral-700 ring-opacity-5 focus:outline-none">
-                                <div class="p-1">
-                                    <a href="${this.actionUrl}/view/${item.id}" class="px-2 lg:py-1.5 py-2 w-full flex items-center gap-2 rounded-md transition-colors text-left text-gray-800 hover:bg-gray-50 focus-visible:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"><span class="material-icons text-sm">article</span>View</a>
-                                    <a href="${this.actionUrl}/edit/${item.id}" class="px-2 lg:py-1.5 py-2 w-full flex items-center gap-2 rounded-md transition-colors text-left text-gray-800 hover:bg-gray-50 focus-visible:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"><span class="material-icons text-sm">edit</span>Edit</a>
-                                    <button onclick="deleteItem('${this.actionUrl}', '${item.id}', '${this.csrfToken}')" class="px-2 lg:py-1.5 py-2 w-full rounded-md text-left text-gray-800 hover:bg-red-50 hover:text-red-600 focus-visible:bg-red-50 focus-visible:text-red-600 flex items-center align-middle gap-2"><span class="material-icons text-[14px]">delete</span>Delete</button>
+                    // Actions column (always last, always visible)
+                    if (this.options.showActions !== false) {
+                        const td = document.createElement('td');
+                        td.className = 'px-6 py-1 whitespace-nowrap text-sm font-medium table-cell text-right';
+                        td.setAttribute('data-field', 'actions');
+                        // Dropdown logic: unique id for each row
+                        const dropdownId = `dropdown-actions-${item.id}`;
+                        td.innerHTML = `
+                            <div class="relative inline-block text-left">
+                                <button type="button" data-dropdown-for="${dropdownId}" aria-haspopup="true" aria-expanded="false" class="rounded-md align-middle text-xl cursor-pointer hover:bg-accent focus:bg-accent active:bg-accent p-2 text-muted-foreground hover:text-foreground" onclick="toggleActionsDropdown('${dropdownId}', this)"><i data-lucide="ellipsis"></i></button>
+                                <div id="${dropdownId}" class="hidden absolute z-50 w-36 rounded-md border border-border shadow-lg bg-popover text-popover-foreground focus:outline-none" role="menu">
+                                    <div class="p-1">
+                                        <a href="${this.actionUrl}/view/${item.id}" class="px-2 lg:py-1.5 py-2 w-full flex items-center gap-2 rounded-md transition-colors text-left text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent disabled:opacity-50 disabled:cursor-not-allowed" role="menuitem"><i data-lucide="file-text" class="text-sm"></i>View</a>
+                                        <a href="${this.actionUrl}/edit/${item.id}" class="px-2 lg:py-1.5 py-2 w-full flex items-center gap-2 rounded-md transition-colors text-left text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent disabled:opacity-50 disabled:cursor-not-allowed" role="menuitem"><i data-lucide="pencil" class="text-sm"></i>Edit</a>
+                                        <button type="button" onclick="deleteItem('${this.actionUrl}', '${item.id}', '${this.csrfToken}')" class="px-2 lg:py-1.5 py-2 w-full rounded-md text-left text-foreground hover:bg-destructive hover:text-destructive-foreground focus-visible:bg-destructive focus-visible:text-destructive-foreground flex items-center align-middle gap-2" role="menuitem"><i data-lucide="trash-2" class="text-[14px]"></i>Delete</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    `;
-                    tr.appendChild(td);
-                }
+                        `;
+                        tr.appendChild(td);
+                    }
                 tbody.appendChild(tr);
                 // Nested row for extra columns (only if extra columns)
                 if (this.hasExtraColumns && expandKey && this.expandedRows[expandKey]) {
                     const trNested = document.createElement('tr');
-                    trNested.className = 'bg-neutral-50 dark:bg-white/20';
+                    trNested.className = 'bg-muted/50';
                     const tdNested = document.createElement('td');
-                    tdNested.colSpan = 2 + this.mainColumns.length + 1; // checkbox + expand + main + actions
+                    const nestedColCount = this.mainRowCellCount();
+                    tdNested.colSpan = nestedColCount;
                     tdNested.className = 'py-6 px-8';
-                    let nestedHtml = '<div class="grid grid-cols-1 gap-2 md:grid-cols-2">';
+                    let nestedHtml = '<dl class="grid grid-cols-1 gap-x-8 gap-y-3 md:grid-cols-2">';
                     for (const field of this.extraColumns) {
+                        if (!this.visibleColumns.includes(field)) continue;
                         const col = this.columns.find(c => c.field === field);
                         let title = field;
                         let value = '';
+                        let isHtml = false;
                         if (col) {
                             title = col.title || field;
                             if (col.render && typeof window[col.render] === 'function') {
                                 value = window[col.render](item);
+                                isHtml = true;
                             } else if (col.type === 'belongsTo') {
                                 // Handle foreign key relationships in nested rows
                                 value = this.renderForeignKeyLink(item, field, col);
+                                isHtml = true;
                             } else {
                                 value = this.getNestedValue(item, field);
                             }
                         } else {
                             value = this.getNestedValue(item, field);
                         }
-                        nestedHtml += `<div class=\"grid grid-cols-2 w-full\"><span class=\"font-semibold text-sm text-left pr-2 w-full\">${title}</span><span class=\"text-left w-full flex\"><span>:</span><span class="pl-4 overflow-auto break-keep">${value !== null && value !== undefined ? value : ''}</span></span></div>`;
+                        const displayValue = value !== null && value !== undefined ? String(value) : '';
+                        const safeValue = isHtml ? displayValue : this.escapeHtml(displayValue);
+                        nestedHtml += `<div class="flex items-start gap-3"><dt class="w-36 shrink-0 text-sm font-semibold text-muted-foreground">${title}</dt><dd class="min-w-0 flex-1 text-sm text-foreground break-words">${safeValue}</dd></div>`;
                     }
-                    nestedHtml += '</div>';
+                    nestedHtml += '</dl>';
                     tdNested.innerHTML = nestedHtml;
                     trNested.appendChild(tdNested);
                     // Insert nested row immediately after the main row
@@ -324,6 +369,9 @@ function ajaxTable() {
             });
             this.updateAllVisibleChecked();
             this.testAjaxTable();
+            if (typeof window.createLucideIcons === 'function') {
+                window.createLucideIcons();
+            }
         },
 
         // Search functionality
@@ -343,6 +391,7 @@ function ajaxTable() {
                 this.sortField = field;
                 this.sortDirection = 'asc';
             }
+            this.recordHistory('Sorted by ' + this.sortField + ' ' + this.sortDirection);
             this.loadData();
         },
 
@@ -384,6 +433,141 @@ function ajaxTable() {
         // Watcher for pageSize (call this in @change handler)
         onPageSizeChange() {
             this.currentPage = 1; // Reset to first page on page size change
+            this.recordHistory('Page size: ' + this.pageSize);
+            this.savePaginationState();
+            this.loadData();
+        },
+
+        // Number of table cells in a visible main row
+        mainRowCellCount() {
+            let count = 1; // checkbox
+            if (this.hasExtraColumns) count += 1; // expand/collapse
+            count += this.mainColumns.filter(f => f !== 'actions' && this.visibleColumns.includes(f)).length;
+            if (this.options.showActions !== false) count += 1; // actions
+            return count;
+        },
+
+        // Number of active column filters
+        activeFilterCount() {
+            return Object.values(this.filters).filter(v => v !== null && v !== undefined && String(v).trim() !== '').length;
+        },
+
+        // Safe filter value getter/setter (avoids x-model on dynamic keys)
+        filterValue(field) {
+            return this.filterDraft[field] || '';
+        },
+        setFilterValue(field, value) {
+            this.filterDraft[field] = value;
+        },
+
+        // Open the filter panel seeded with the current filters
+        toggleFilterPanel() {
+            this.filterDraft = { ...this.filters };
+            this.filterOpen = !this.filterOpen;
+        },
+        applyFilters() {
+            const draft = {};
+            for (const [field, value] of Object.entries(this.filterDraft)) {
+                if (value !== null && value !== undefined && String(value).trim() !== '') {
+                    draft[field] = value;
+                }
+            }
+            this.filters = draft;
+            this.filterOpen = false;
+            this.currentPage = 1;
+            this.recordHistory('Filters applied');
+            this.savePaginationState();
+            this.loadData();
+        },
+        clearFilters() {
+            this.filters = {};
+            this.filterDraft = {};
+            this.filterOpen = false;
+            this.currentPage = 1;
+            this.recordHistory('Filters cleared');
+            this.savePaginationState();
+            this.loadData();
+        },
+
+        // Column visibility toggles (settings panel)
+        toggleColumn(field) {
+            const idx = this.visibleColumns.indexOf(field);
+            if (idx === -1) {
+                this.visibleColumns.push(field);
+            } else {
+                this.visibleColumns.splice(idx, 1);
+            }
+        },
+        applyColumnVisibility(record = true) {
+            const thead = this.$root.querySelector('thead');
+            if (thead) {
+                thead.querySelectorAll('th[data-field]').forEach((th) => {
+                    const field = th.getAttribute('data-field');
+                    if (field === '__select__' || field === '__expand__' || field === 'actions') return;
+                    th.classList.toggle('hidden', !this.visibleColumns.includes(field));
+                });
+            }
+            this.renderTableBody();
+            if (record) this.recordHistory('Columns updated');
+            this.savePaginationState();
+        },
+        resetSettings() {
+            this.visibleColumns = [...this.mainColumns, ...this.extraColumns].filter(f => f !== 'actions');
+            this.pageSize = 10;
+            this.currentPage = 1;
+            this.applyColumnVisibility(false);
+            this.recordHistory('Settings reset');
+            this.savePaginationState();
+            this.loadData();
+        },
+
+        // Action history
+        recordHistory(label) {
+            const key = label;
+            if (key === this.lastHistoryKey) return;
+            this.lastHistoryKey = key;
+            const entry = {
+                label,
+                timestamp: new Date().toLocaleString(),
+                state: {
+                    searchTerm: this.searchTerm,
+                    sortField: this.sortField,
+                    sortDirection: this.sortDirection,
+                    pageSize: this.pageSize,
+                    currentPage: this.currentPage,
+                    filters: { ...this.filters },
+                    visibleColumns: [...this.visibleColumns]
+                }
+            };
+            this.historyEntries.unshift(entry);
+            if (this.historyEntries.length > 50) this.historyEntries.pop();
+        },
+        restoreHistory(entry) {
+            if (!entry || !entry.state) return;
+            const s = entry.state;
+            this.searchTerm = s.searchTerm || '';
+            this.sortField = s.sortField || 'id';
+            this.sortDirection = s.sortDirection || 'asc';
+            this.pageSize = s.pageSize || this.pageSize;
+            this.currentPage = s.currentPage || 1;
+            this.filters = s.filters || {};
+            this.filterDraft = { ...this.filters };
+            if (Array.isArray(s.visibleColumns) && s.visibleColumns.length) {
+                this.visibleColumns = s.visibleColumns;
+            }
+            this.applyColumnVisibility(false);
+            this.historyOpen = false;
+            this.savePaginationState();
+            this.loadData();
+        },
+        clearHistory() {
+            this.historyEntries = [];
+            this.lastHistoryKey = '';
+        },
+
+        // Search input handler (debounced)
+        onSearchInput() {
+            this.currentPage = 1;
             this.savePaginationState();
             this.loadData();
         },
@@ -397,6 +581,16 @@ function ajaxTable() {
                 }, obj);
             }
             return obj[path] !== undefined ? obj[path] : '';
+        },
+
+        // Escape plain text values before injecting them into innerHTML
+        escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         },
 
         // Delete item functionality (calls global deleteItem)
@@ -437,7 +631,7 @@ function ajaxTable() {
                 const relatedUrl = `${col.route}/${relatedData.id}`;
                 
                 // Return the HTML link
-                return `<a href="${relatedUrl}" class="text-neutral-800 hover:text-neutral-900 dark:text-neutral-100 dark:hover:text-neutral-200 underline">${displayValue}</a>`;
+                return `<a href="${relatedUrl}" class="text-primary underline hover:text-primary/80">${displayValue}</a>`;
             } else {
                 // If no related data, show the foreign key value or empty
                 const fkValue = this.getNestedValue(item, field);
@@ -538,7 +732,7 @@ function ajaxTable() {
                 if (field === 'actions') continue;
                 if (!this.visibleColumns.includes(field)) continue;
                 const th = document.createElement('th');
-                th.className = 'px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider';
+                th.className = 'px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider';
                 th.setAttribute('data-field', field);
                 th.textContent = col.title || (typeof col === 'string' ? col : field);
                 tr.appendChild(th);
@@ -546,7 +740,7 @@ function ajaxTable() {
             // Actions column header (always last, always visible)
             if (this.options.showActions !== false) {
                 const th = document.createElement('th');
-                th.className = 'px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider table-cell';
+                th.className = 'px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider table-cell';
                 th.setAttribute('data-field', 'actions');
                 th.textContent = 'Actions';
                 tr.appendChild(th);
@@ -568,7 +762,9 @@ function ajaxTable() {
                 pageSize: this.pageSize,
                 currentPage: this.currentPage,
                 sortField: this.sortField,
-                sortDirection: this.sortDirection
+                sortDirection: this.sortDirection,
+                filters: this.filters,
+                visibleColumns: this.visibleColumns
             }));
         },
     };
@@ -610,25 +806,68 @@ window.formatDateTime = function(dateString) {
     return date.toLocaleString();
 };
 
-// Add global toggleActionsDropdown for dropdown logic
-window.toggleActionsDropdown = function(dropdownId) {
-    // Hide all other dropdowns
-    document.querySelectorAll('.origin-top-right.absolute').forEach(el => {
-        if (el.id !== dropdownId) el.classList.add('hidden');
-    });
+// Global dropdown logic for the action dots menu. The menu is positioned with
+// position:fixed, centered under the dots button, so it stays attached to it
+// and is never clipped by the table's overflow-auto scroll container. It flips
+// upward when it would otherwise overflow the bottom of the viewport.
+window.toggleActionsDropdown = function(dropdownId, btn) {
     const dropdown = document.getElementById(dropdownId);
-    if (dropdown) {
-        dropdown.classList.toggle('hidden');
-        // Hide dropdown on click outside
-        const handler = (event) => {
-            if (!dropdown.contains(event.target)) {
-                dropdown.classList.add('hidden');
-                document.removeEventListener('mousedown', handler);
-            }
-        };
-        setTimeout(() => {
-            document.addEventListener('mousedown', handler);
-        }, 0);
+    if (!dropdown) return;
+
+    // Close every other open ajax table dropdown
+    document.querySelectorAll('.ajaxtable-dropdown-open').forEach((el) => {
+        if (el !== dropdown) window.closeActionsDropdown(el);
+    });
+
+    if (!dropdown.classList.contains('hidden')) {
+        window.closeActionsDropdown(dropdown);
+        return;
+    }
+
+    dropdown.classList.remove('hidden');
+    dropdown.classList.add('ajaxtable-dropdown-open');
+    if (btn) {
+        const btnRect = btn.getBoundingClientRect();
+        const menuWidth = dropdown.offsetWidth || 144;
+        const menuHeight = dropdown.offsetHeight || 140;
+        // Center the menu under the dots button so it stays attached to it.
+        let left = btnRect.left + btnRect.width / 2 - menuWidth / 2;
+        let top = btnRect.bottom + 4;
+        // Keep the menu fully inside the viewport.
+        left = Math.max(8, Math.min(left, window.innerWidth - menuWidth - 8));
+        if (top + menuHeight > window.innerHeight - 8) {
+            top = btnRect.top - menuHeight - 4;
+            if (top < 8) top = btnRect.bottom + 4;
+        }
+        dropdown.style.position = 'fixed';
+        dropdown.style.left = Math.round(left) + 'px';
+        dropdown.style.top = Math.round(top) + 'px';
+    }
+
+    // Close on outside click, scroll or resize
+    const close = (e) => {
+        if (!dropdown.classList.contains('ajaxtable-dropdown-open')) return;
+        if (e && dropdown.contains(e.target)) return;
+        if (e && e.target.closest && e.target.closest('button[data-dropdown-for]')) return;
+        window.closeActionsDropdown(dropdown);
+    };
+    dropdown._closeHandler = close;
+    setTimeout(() => document.addEventListener('mousedown', close, true), 0);
+    document.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+};
+
+window.closeActionsDropdown = function(dropdown) {
+    dropdown.classList.add('hidden');
+    dropdown.classList.remove('ajaxtable-dropdown-open');
+    dropdown.style.position = '';
+    dropdown.style.left = '';
+    dropdown.style.top = '';
+    if (dropdown._closeHandler) {
+        document.removeEventListener('mousedown', dropdown._closeHandler, true);
+        document.removeEventListener('scroll', dropdown._closeHandler, true);
+        window.removeEventListener('resize', dropdown._closeHandler);
+        delete dropdown._closeHandler;
     }
 };
 

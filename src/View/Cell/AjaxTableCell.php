@@ -64,7 +64,19 @@ class AjaxTableCell extends Cell
         }, ARRAY_FILTER_USE_BOTH);
 
         $options['columns'] = $columns;
-        $options['defaultSortField'] = $options['defaultSortField'] ?? array_keys($columns)[0];
+        $options['defaultSortField'] = $options['defaultSortField'] ?? array_keys($columns)[0] ?? 'id';
+        $options['defaultSortDirection'] = $options['defaultSortDirection'] ?? 'asc';
+
+        // User-scoped tables (e.g. activities) default to newest first
+        $table = $this->instance($controller, $plugin);
+        if ($table->hasBehavior('AjaxTable')) {
+            $behavior = $table->behaviors()->get('AjaxTable');
+            $schemaColumns = $table->getSchema()->columns();
+            if ($behavior->getConfig('userScoped') && in_array('created', $schemaColumns, true)) {
+                $options['defaultSortField'] = 'created';
+                $options['defaultSortDirection'] = 'desc';
+            }
+        }
 
         $this->set(compact('controller', 'plugin', 'options'));
     }

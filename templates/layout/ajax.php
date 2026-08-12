@@ -31,12 +31,11 @@ use Cake\I18n\I18n;
 
     <?= $this->Vite->assets(['js/app.js', 'css/app.css']) ?>
 
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <?= $this->fetch('meta') ?>
     <?= $this->fetch('css') ?>
 
 </head>
-<body class="min-h-screen bg-white dark:bg-neutral-800">
+<body class="min-h-screen bg-background text-foreground">
 <?= match (Configure::read('Setting.app.layout', 'aside')) {
     'aside' => $this->element('app/aside'),
     'header' => $this->element('app/header'),
